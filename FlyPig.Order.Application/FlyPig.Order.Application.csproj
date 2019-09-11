@@ -1,0 +1,167 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{8FC5642D-3773-441A-BEF7-A526E0C058A7}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>FlyPig.Order.Application</RootNamespace>
+    <AssemblyName>FlyPig.Order.Application</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="AutoMapper, Version=7.0.1.0, Culture=neutral, PublicKeyToken=be96cd2c38ef1005, processorArchitecture=MSIL">
+      <HintPath>..\packages\AutoMapper.7.0.1\lib\net45\AutoMapper.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="SqlSugar, Version=4.9.9.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\sqlSugar.4.9.9\lib\SqlSugar.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+    <Reference Include="TopSdk, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\TopSdk.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AliTripOrderClient.cs" />
+    <Compile Include="AliTripOrderService.cs" />
+    <Compile Include="Channel\BigTreeProductChannel.cs" />
+    <Compile Include="Channel\BigTree\BigtreeOrderChannel.cs" />
+    <Compile Include="Channel\CtripProductChannel.cs" />
+    <Compile Include="Channel\Ctrip\ChenYiCtripOrderChannel.cs" />
+    <Compile Include="Channel\Ctrip\CtripTmallOrderChannel.cs" />
+    <Compile Include="Channel\IProductChannel.cs" />
+    <Compile Include="Channel\MeiTuanProductChannel.cs" />
+    <Compile Include="Channel\ProductChannelFactory.cs" />
+    <Compile Include="Common\CacheHelper.cs" />
+    <Compile Include="Common\ServiceResult.cs" />
+    <Compile Include="Common\Tmall\AliTripConfig.cs" />
+    <Compile Include="Common\Tmall\TmallApiClient.cs" />
+    <Compile Include="Entities\AuthenticationToken.cs" />
+    <Compile Include="Entities\BookRQ.cs" />
+    <Compile Include="Entities\BookRQResult.cs" />
+    <Compile Include="Entities\CancelRQ.cs" />
+    <Compile Include="Entities\CancelRQResult.cs" />
+    <Compile Include="Entities\Domestic\DomesticHotel.cs" />
+    <Compile Include="Entities\Domestic\DomesticRatePlan.cs" />
+    <Compile Include="Entities\Domestic\DomesticRoomRate.cs" />
+    <Compile Include="Entities\Domestic\DomesticRoomType.cs" />
+    <Compile Include="Entities\Dto\BookingCheckInputDto.cs" />
+    <Compile Include="Entities\Dto\BookingCheckOutDto.cs" />
+    <Compile Include="Entities\Dto\BigTreeRoomStatusDto.cs" />
+    <Compile Include="Entities\Dto\DetailOrderDto.cs" />
+    <Compile Include="Entities\Dto\TmallHotelPriceInfo.cs" />
+    <Compile Include="Entities\Dto\TmallOrderDto.cs" />
+    <Compile Include="Entities\Dto\HotelIdDto.cs" />
+    <Compile Include="Entities\Dto\NoticeCommonOrderDto.cs" />
+    <Compile Include="Entities\Dto\NoticeSimpleOrderDto.cs" />
+    <Compile Include="Entities\Enum\MessageType.cs" />
+    <Compile Include="Entities\Enum\OrderStatus.cs" />
+    <Compile Include="Entities\Enum\ProductChannel.cs" />
+    <Compile Include="Entities\Enum\ShopType.cs" />
+    <Compile Include="Entities\OrderMarkType.cs" />
+    <Compile Include="Entities\OrderRefundRQ.cs" />
+    <Compile Include="Entities\OrderRefundRQResult.cs" />
+    <Compile Include="Entities\PaySuccessRQ.cs" />
+    <Compile Include="Entities\PaySuccessRQResult.cs" />
+    <Compile Include="Entities\QueryStatusResult.cs" />
+    <Compile Include="Entities\QueryStatusRQ.cs" />
+    <Compile Include="Entities\RateQuotasPrice.cs" />
+    <Compile Include="Entities\TaoBaoResultXml.cs" />
+    <Compile Include="Entities\TaoBaoXml.cs" />
+    <Compile Include="Entities\UrgeRQ.cs" />
+    <Compile Include="Entities\ValidateRQ.cs" />
+    <Compile Include="Entities\ValidateRQResult.cs" />
+    <Compile Include="IOrderChannel.cs" />
+    <Compile Include="Message\FlyPigMessageUility.cs" />
+    <Compile Include="Channel\MeiTuan\Entity\MeiTuanRoomInfo.cs" />
+    <Compile Include="Channel\MeiTuan\Entity\MTPriceInfo.cs" />
+    <Compile Include="Channel\MeiTuan\Entity\MTRatePlanMQ.cs" />
+    <Compile Include="Channel\MeiTuan\Entity\MTReconciliationInfo.cs" />
+    <Compile Include="Channel\MeiTuan\Entity\MTResellRate.cs" />
+    <Compile Include="Channel\MeiTuan\Entity\MTRoomTypeDetail.cs" />
+    <Compile Include="Channel\MeiTuan\Entity\RatePlanInvoice.cs" />
+    <Compile Include="Channel\MeiTuan\Order\ChenYiMeiTuanOrderChannel.cs" />
+    <Compile Include="Channel\MeiTuan\Order\IMeiTuanOrderChannel.cs" />
+    <Compile Include="Channel\MeiTuan\Order\ShengLvMeiTuanOrderChannel.cs" />
+    <Compile Include="Channel\MeiTuan\Order\TmallMeiTuanOrderChannel.cs" />
+    <Compile Include="Notice\BaseOrderNotice.cs" />
+    <Compile Include="Notice\BookNotice.cs" />
+    <Compile Include="Notice\CancelNotice.cs" />
+    <Compile Include="Notice\IOrderNotice.cs" />
+    <Compile Include="Notice\PaySuccessNotice.cs" />
+    <Compile Include="Notice\QueryStatusNotice.cs" />
+    <Compile Include="Notice\RefundNotice.cs" />
+    <Compile Include="Notice\UrgeNotice.cs" />
+    <Compile Include="Notice\ValidateNotice.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Repository\Channel\BigTreeRepository.cs" />
+    <Compile Include="Repository\Channel\CtripRepository.cs" />
+    <Compile Include="Repository\Channel\MeiTuanRepository.cs" />
+    <Compile Include="Repository\HotelRepository.cs" />
+    <Compile Include="Repository\Order\ChenYiOrderRepository.cs" />
+    <Compile Include="Repository\Order\BigTreeOrderRepository.cs" />
+    <Compile Include="Repository\Order\IOrderRepository.cs" />
+    <Compile Include="Repository\Order\ShengLvOrderRepository.cs" />
+    <Compile Include="Repository\Order\ThirdOrderRepository.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Channel\Ctrip\Ctrip.csproj">
+      <Project>{283713bb-3a9a-488e-83dd-ebfcf865532e}</Project>
+      <Name>Ctrip</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Channel\MeiTuan\MeiTuan.csproj">
+      <Project>{52748530-2214-4b64-818d-ca080043e878}</Project>
+      <Name>MeiTuan</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FlyPig.Order.Core\FlyPig.Order.Core.csproj">
+      <Project>{f8296469-8bf4-4bc4-9e42-3b45a77c21a6}</Project>
+      <Name>FlyPig.Order.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FlyPig.Order.Framework\FlyPig.Order.Framework.csproj">
+      <Project>{eeda92ae-631c-44d8-86d0-e87f69fd22b6}</Project>
+      <Name>FlyPig.Order.Framework</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

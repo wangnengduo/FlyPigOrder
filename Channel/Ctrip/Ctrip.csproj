@@ -1,0 +1,103 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{283713BB-3A9A-488E-83DD-EBFCF865532E}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CtripApi</RootNamespace>
+    <AssemblyName>CtripApi</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Common\CacheHelper.cs" />
+    <Compile Include="Common\CtAuthorize.cs" />
+    <Compile Include="Common\JsonHelper.cs" />
+    <Compile Include="Common\RequestXMLWrapper.cs" />
+    <Compile Include="Common\ResponseStatus.cs" />
+    <Compile Include="Config\ApiConfig.cs" />
+    <Compile Include="Config\ApiConfigManager.cs" />
+    <Compile Include="CtripApiClient.cs" />
+    <Compile Include="CtripNewClient.cs" />
+    <Compile Include="Entities\DomestictCtripOrderIDInfo.cs" />
+    <Compile Include="Entities\HotelOrderMiniInfo.cs" />
+    <Compile Include="Entities\HeaderInfo.cs" />
+    <Compile Include="Entities\HotelRatePlanInfo.cs" />
+    <Compile Include="Entities\ResRetrieveInfo.cs" />
+    <Compile Include="NewRequest\CreateOrderRequest.cs" />
+    <Compile Include="NewRequest\ICtripRequest.cs" />
+    <Compile Include="NewResponse\BaseResponse.cs" />
+    <Compile Include="NewResponse\CreateOrderResponse.cs" />
+    <Compile Include="NewResponse\ICtripResponse.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Request\CancelRequest.cs" />
+    <Compile Include="Request\HotelResSubmitRequest.cs" />
+    <Compile Include="Request\OrderRequest.cs" />
+    <Compile Include="Request\OTA_HotelResSave.cs" />
+    <Compile Include="Request\HotelResSaveRequest.cs" />
+    <Compile Include="Request\D_GetCtripOrderIDRequest.cs" />
+    <Compile Include="Request\D_HotelOrderMiniInfoRequest.cs" />
+    <Compile Include="Request\HotelAvailRequest.cs" />
+    <Compile Include="Request\HotelDescriptiveRequest.cs" />
+    <Compile Include="Request\CtripRequst.cs" />
+    <Compile Include="Request\HeaderRequest.cs" />
+    <Compile Include="Request\HotelResRequest.cs" />
+    <Compile Include="Request\ICtripRequest.cs" />
+    <Compile Include="Response\BaseResponse.cs" />
+    <Compile Include="Response\CancelResponse.cs" />
+    <Compile Include="Response\HotelAvailReponse.cs" />
+    <Compile Include="Response\HotelResSaveResponse.cs" />
+    <Compile Include="Response\D_GetCtripOrderIDResponse.cs" />
+    <Compile Include="Response\HotelOrderMiniInfoResponse.cs" />
+    <Compile Include="Response\HotelResSubmitResponse.cs" />
+    <Compile Include="Response\ResRetrieveResponse.cs" />
+    <Compile Include="TmCtripIntlApi.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\FlyPig.Order.Framework\FlyPig.Order.Framework.csproj">
+      <Project>{eeda92ae-631c-44d8-86d0-e87f69fd22b6}</Project>
+      <Name>FlyPig.Order.Framework</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
