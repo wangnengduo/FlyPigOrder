@@ -18,6 +18,10 @@ using FlyPig.Order.Framework.HttpWeb;
 
 using SqlSugar;
 using Flypig.Order.Application.Order.Message;
+using FlyPig.Order.Application.Channel.MeiTuan.Entity.mtPriceCacheEntity;
+using FlyPig.Order.Framework.Logging;
+using Flypig.Order.Application.Order.Entities;
+using Newtonsoft.Json;
 
 namespace FlyPig.Order.Application.MT.Order
 {
@@ -26,7 +30,7 @@ namespace FlyPig.Order.Application.MT.Order
         protected IOrderRepository orderRepository;
         private readonly SqlSugarClient sqlSugarClient;
         protected Random random = new Random(Guid.NewGuid().GetHashCode());
-
+        private readonly LogWriter logWriter;
         /// <summary>
         /// 构造函数
         /// </summary>
@@ -44,6 +48,7 @@ namespace FlyPig.Order.Application.MT.Order
             {
                 sqlSugarClient = SqlSugarContext.ResellbaseInstance;
             }
+            logWriter = new LogWriter("Tmall/Breakfast");
         }
 
         public abstract string RequestUrl { get; }
@@ -142,6 +147,68 @@ namespace FlyPig.Order.Application.MT.Order
                     return result.SetError("该订单未提交到美团，请勿重复下单");
                 }
 
+                //List<DailyInfo> dailyInfo = JsonConvert.DeserializeObject<List<DailyInfo>>(order.DailyInfoPrice);
+
+                int tBreakfast = getBreakfast(order.hotelID, order.roomID, order.ratePlanID, order.orderNO);
+                //logWriter.Write("美团：酒店id：{0},roomID：{1},ratePlanID：{2}，早餐数：{3}，飞猪早餐数：{4}，订单号：{5}", order.hotelID, order.roomID, order.ratePlanID, tBreakfast,order.userID,order.orderNO);
+                //判断早餐数是否对等
+                if (order.userID > tBreakfast && tBreakfast != 99 && order.userID != 0)
+                {
+
+                    Task.Factory.StartNew(() =>
+                    {
+                        try
+                        {
+                            //当早餐数不对等时更新rp
+                            string urlUpdateRp = string.Format("http://localhost:9092/ashx/rnxUpdateRaPlan.ashx?type=rp&source=5&hid={0}", order.hotelID);
+                            string getBoby = WebHttpRequest.Get(urlUpdateRp);
+                            if (!getBoby.Contains("更新价格计划成功"))
+                            {
+                                WebHttpRequest.Get(urlUpdateRp);
+                            }
+                            int NowHour = DateTime.Now.Hour;//当前时间的时数
+                            int NowMinute = DateTime.Now.Minute;//当前时间的分钟数
+                            //晚上12点半后，8点前满房时自动发送短信
+                            if ((NowHour == 0 && NowMinute > 30) || (NowHour > 0 && NowHour < 8))
+                            {
+                                //发满房短信（发送满房信息）
+                                FlyPigMessageUility.ThirdCommunication(Shop, Convert.ToInt32(order.aId), "系统", 1);
+                            }
+                        }
+                        catch
+                        {
+
+                        }
+                    });
+                    string beiZhu = string.Format("【系统】:下单失败，具体原因：早餐个数不相等，天猫：{1}, 供应商：{2}，取消执行自动下单，请联系申退 [{0}] <br/>【系统】:已自动更正早餐数，无需人工手动下线该酒店或房型 [{0}]", DateTime.Now.ToString(), order.userID, tBreakfast);
+                    orderRepository.UpdateRemarkState(order.aId, 24, beiZhu);
+                    logWriter.Write("美团(供应商早餐数发生变化)：飞猪酒店id：{0}，酒店id：{1},roomID：{2},ratePlanID：{3}，早餐数：{4}，飞猪早餐数：{5}，订单号：{6}",order.TaoBaoHotelId, order.hotelID, order.roomID, order.ratePlanID, tBreakfast, order.userID, order.orderNO);
+                    return result.SetError("该订单早餐个数不相等");
+                }
+                else if (order.userID < tBreakfast)
+                {
+                    //如果供应商的早餐数大于平台的，更新rp
+                    Task.Factory.StartNew(() =>
+                    {
+                        try
+                        {
+                            string urlUpdateRp = string.Format("http://localhost:9092/ashx/rnxUpdateRaPlan.ashx?type=rp&source=5&hid={0}", order.hotelID);
+                            string getBoby = WebHttpRequest.Get(urlUpdateRp);
+                            if (!getBoby.Contains("更新价格计划成功"))
+                            {
+                                WebHttpRequest.Get(urlUpdateRp);
+                            }
+                        }
+                        catch
+                        {
+
+                        }
+                    });
+                    logWriter.Write("美团(平台早餐数少)：飞猪酒店id：{0}，酒店id：{1},roomID：{2},ratePlanID：{3}，早餐数：{4}，飞猪早餐数：{5}，订单号：{6}", order.TaoBaoHotelId, order.hotelID, order.roomID, order.ratePlanID, tBreakfast, order.userID, order.orderNO);
+
+                }
+
+
                 string message = string.Empty;
                 string content = string.Empty;
                 string url = string.Empty;
@@ -178,7 +245,7 @@ namespace FlyPig.Order.Application.MT.Order
                 content = WebHttpRequest.GetOrder(url);
 
                 if (content.Contains("可预订接口返回不可订") || content.Contains("订单提交给美团失败") || content.Contains("已售完或扣减库存失败")
-                    || content.Contains("订单价格与产品价格不符, 可能已变价"))
+                    || content.Contains("订单价格与产品价格不符, 可能已变价") || content.Contains("失败，已变价，请判断价格再提交"))
                 {
                     Task.Factory.StartNew(() =>
                     {
@@ -206,11 +273,13 @@ namespace FlyPig.Order.Application.MT.Order
                             int NowHour = DateTime.Now.Hour;//当前时间的时数
                             int NowMinute = DateTime.Now.Minute;//当前时间的分钟数
                             //晚上12点半后，8点前满房时自动发送短信
-                            if ((NowHour == 0 && NowMinute > 30) || (NowHour > 0 && NowHour < 8))
-                            {
-                                //发满房短信（发送满房信息）
-                                FlyPigMessageUility.ThirdCommunication(Shop, Convert.ToInt32(order.aId), "系统", 1);
-                            }
+                            //if ((NowHour == 0 && NowMinute > 30) || (NowHour > 0 && NowHour < 8))
+                            //{
+                            //    //发满房短信（发送满房信息）
+                            //    FlyPigMessageUility.ThirdCommunication(Shop, Convert.ToInt32(order.aId), "系统", 1);
+                            //}
+                            //发满房短信（发送满房信息）
+                            FlyPigMessageUility.ThirdCommunication(Shop, Convert.ToInt32(order.aId), "系统", 1);
                         }
                         catch
                         {
@@ -235,5 +304,38 @@ namespace FlyPig.Order.Application.MT.Order
             }
         }
 
+        /// <summary>
+        /// 获取早餐数
+        /// </summary>
+        /// <param name="hotelCode"></param>
+        /// <param name="RoomTypeId"></param>
+        /// <param name="RatePlanId"></param>
+        /// <returns></returns>
+        public int getBreakfast(string hotelCode,string RoomTypeId, string RatePlanId,string orderNO)
+        {
+            int Breakfast = 0;
+            try
+            {
+                string sql = string.Format(@"SELECT top 1  cache as RoomName FROM dbo.mtPriceCache with(nolock) WHERE hotelCode='{0}'", hotelCode);
+                var RoomNameobj = SqlSugarContext.CacheData2_99.SqlQueryable<CtripRoomType>(sql).First();
+                if (RoomNameobj != null)
+                {
+                    if (!string.IsNullOrEmpty(RoomNameobj.RoomName))
+                    {
+                        var rts = Newtonsoft.Json.JsonConvert.DeserializeObject<List<mtPriceCache>>(RoomNameobj.RoomName);
+                        //var RoomTypeInfo = rts.Where(b => b.XRoomId == RoomTypeId && b.RatePlan[0].RatePlanId == RatePlanId).FirstOrDefault();
+                        var RoomTypeInfo = rts.Where(b => b.RatePlan[0].RatePlanId == RatePlanId).FirstOrDefault();
+                        //var RoomTypeInfo = rp.RatePlan.Where(b => b.RatePlanId == RatePlanId&& b.RoomTypeId== RoomTypeId).FirstOrDefault();
+                        Breakfast = Convert.ToInt16(RoomTypeInfo.RatePlan[0].Breakfast.Replace("份早餐", ""));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logWriter.Write("美团(ERR)：酒店id：{0},roomID：{1},ratePlanID：{2}，订单号：{3}，报错原因：{4}", hotelCode, RoomTypeId, RatePlanId, orderNO, ex.ToString());
+                Breakfast = 99;
+            }
+            return Breakfast;
+        }
     }
 }

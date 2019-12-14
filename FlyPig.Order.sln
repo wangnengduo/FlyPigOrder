@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MeiTuan", "Channel\MeiTuan\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ctrip", "Channel\Ctrip\Ctrip.csproj", "{283713BB-3A9A-488E-83DD-EBFCF865532E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DaDuShi", "DaDuShi\DaDuShi.csproj", "{49E5F6E7-8C42-40B5-8D7B-8713A04AE869}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +49,10 @@ Global
 		{283713BB-3A9A-488E-83DD-EBFCF865532E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{283713BB-3A9A-488E-83DD-EBFCF865532E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{283713BB-3A9A-488E-83DD-EBFCF865532E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{49E5F6E7-8C42-40B5-8D7B-8713A04AE869}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{49E5F6E7-8C42-40B5-8D7B-8713A04AE869}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{49E5F6E7-8C42-40B5-8D7B-8713A04AE869}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{49E5F6E7-8C42-40B5-8D7B-8713A04AE869}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -54,6 +60,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{52748530-2214-4B64-818D-CA080043E878} = {A55EF05A-1194-4E33-B29C-6A60880D0683}
 		{283713BB-3A9A-488E-83DD-EBFCF865532E} = {A55EF05A-1194-4E33-B29C-6A60880D0683}
+		{49E5F6E7-8C42-40B5-8D7B-8713A04AE869} = {A55EF05A-1194-4E33-B29C-6A60880D0683}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {46C56B68-AABC-4173-B6F4-0C48CFDCAFA0}

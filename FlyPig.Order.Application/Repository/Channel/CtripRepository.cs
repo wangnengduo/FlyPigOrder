@@ -1,4 +1,5 @@
-﻿using FlyPig.Order.Core;
+﻿using FlyPig.Order.Application.Channel.Ctrip;
+using FlyPig.Order.Core;
 using FlyPig.Order.Core.Model;
 using System;
 using System.Collections.Generic;
@@ -33,7 +34,29 @@ namespace FlyPig.Order.Application.Repository.Channel
         /// <returns></returns>
         public CtripRoomType GetRoomType(string hotelId, string roomId)
         {
-            return SqlSugarContext.LingZhongInstance.Queryable<CtripRoomType>().Where(u => u.HotelId == hotelId && u.RoomId == roomId).First();
+            //return SqlSugarContext.LingZhongInstance.Queryable<CtripRoomType>().Where(u => u.HotelId == hotelId && u.RoomId == roomId).First();
+
+            var rt = new CtripRoomType();
+            try
+            {
+                string sql =string.Format(@"SELECT roomJson as RoomName FROM dbo.ctripRoomCache WITH(NOLOCK) WHERE hotelId='{0}'", hotelId);
+                var RoomNameobj = SqlSugarContext.CtripHotelInstance.SqlQueryable<CtripRoomType>(sql).First();
+                if (RoomNameobj != null)
+                {
+                    if (!string.IsNullOrEmpty(RoomNameobj.RoomName))
+                    {
+                        var baseRts = Newtonsoft.Json.JsonConvert.DeserializeObject<TgCtripRooms>(RoomNameobj.RoomName);
+                        var RoomTypeInfo = baseRts.RoomStaticInfos.Where(b => b.RoomTypeInfo.RoomTypeID == roomId).FirstOrDefault();
+                        rt.RoomName = RoomTypeInfo.RoomTypeInfo.RoomTypeName;
+                        rt.RoomId = roomId;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                
+            }
+            return rt;
         }
 
 

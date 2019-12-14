@@ -93,5 +93,7 @@ namespace FlyPig.Order.Application.Entities.Dto
         public decimal? MemberPrice { get; set; }
 
         public string BuyerNick { get; set; }
+
+        public short hasChange { get; set; }
     }
 }

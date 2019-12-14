@@ -35,8 +35,8 @@ namespace Flypig.Order.Application.Order.Message
 
                 var order = sqlSugar.Queryable<TB_hotelcashorder>().Where(u => u.aId == aid).First();
                 string orderNo = string.Empty;
-                string shopInfo = order.shopType == 5 ? "凌众商旅" : "印迹";
-                string phone = order.shopType == 5 ? "020-87375157" : "020-37167386";
+                string shopInfo = order.shopType == 5 ? "遨游盛旅" : "贵州任你行";
+                string phone = order.shopType == 5 ? "0851-88574658" : "0851-88574658";
 
                 if (order.orderType == 11 && order.shopType != 7)
                 {
@@ -79,28 +79,55 @@ namespace Flypig.Order.Application.Order.Message
                     message = string.Format("尊敬的{0}客人！您预订{1}酒店已预订成功，订单号：（{4}）酒店前台出示身份证 交付押金办理入住，酒店前台可以开具发票，如无法开具发票可以联系我司协助处理，祝您旅途愉快！办理入住如有问题，请联系旺旺或商家电话:{3} 【{2}】", order.contactName, order.hotelName, shopInfo, phone, orderNo);
                 }
 
-
+                bool flag = false;
+                string sendResult = string.Empty;
                 if (shop == ShopType.ShengLv || shop == ShopType.RenNiXing)
                 {
-                    message = string.Format("您预订{0}酒店已确认，酒店查询编号为：{1} 请在前台出示身份证报订单入住人姓名即可入住。如需帮助请及时商家旺旺或热线电话18208503314【遨游盛旅】", order.hotelName, order.sourceOrderID);
-                    SMSUilitily.SendShengLv(order.contactTel, message);
+                    message = string.Format("您预订{0}酒店已确认，酒店查询编号为：{1} 请在前台出示身份证报订单入住人姓名即可入住。如需帮助请及时商家旺旺或热线电话18208503314【贵州任你行】", order.hotelName, order.sourceOrderID);
+                    sendResult = SMSUilitily.SendShengLv(order.contactTel, message,1);
+                    try
+                    {
+                        var match = Regex.Match(sendResult, "[0-9]{10,20}");
+                        flag = Convert.ToInt64(match.Value) > 0;
+                    }
+                    catch
+                    {
+                        flag = false;
+                    }
+                    
                 }
                 else
                 {
-                    SMSUilitily.Send(1, order.contactTel, message);
+                    flag = SMSUilitily.Send(0, order.contactTel, message);
                 }
-
-                string sql = string.Format("INSERT INTO [AliTripSMS]([taobaoOrderId],[Tell],[Content] ,[ShopType],[Source],[CreateTime])VALUES({2},'{0}','{1}',{3},5,getdate())", order.contactTel, message, order.taoBaoOrderId, order.shopType);
-                var flag = SqlSugarContext.BigTreeInstance.Ado.ExecuteCommand(sql) > 0;
+                Task.Factory.StartNew(() =>
+                {
+                    try
+                    {
+                        string sql = string.Format("INSERT INTO [SMSRecord]([Phone],[Content],[Result],[CreateTime]) VALUES('{0}','{1}','{2}',getdate())", order.contactTel, message, sendResult);
+                        SqlSugarContext.ResellbaseInstance.Ado.ExecuteCommand(sql);
+                    }
+                    catch
+                    {
+                    }
+                });
 
                 if (flag)
                 {
+                    string sql = string.Format("INSERT INTO [AliTripSMS]([taobaoOrderId],[Tell],[Content] ,[ShopType],[Source],[CreateTime])VALUES({2},'{0}','{1}',{3},5,getdate())", order.contactTel, message, order.taoBaoOrderId, order.shopType);
+                    SqlSugarContext.BigTreeInstance.Ado.ExecuteCommand(sql);
+
+                    var orderRepository = ProductChannelFactory.CreateOrderRepository(shop, ProductChannel.MT);
+                    string caozuo = string.Format("{0} 发送{1}短信 ", "系统", "订单确认");
+                    orderRepository.UpdateOrderCaoZuo(order.aId, caozuo);
                     return result.SetSucess("短信发送成功");
                 }
                 else
                 {
                     return result.SetError("短信发送失败");
                 }
+
+               
             }
             catch (Exception ex)
             {
@@ -145,7 +172,7 @@ namespace Flypig.Order.Application.Order.Message
                 //{
                 //    shopPrefix = "【遨游盛旅】";
                 //}
-                shopPrefix = "【遨游盛旅】";
+                shopPrefix = "【贵州任你行】";
 
 
                 if (type == 1)        //满房
@@ -181,9 +208,10 @@ namespace Flypig.Order.Application.Order.Message
 
                 message = string.Format("{0}{1}", message, shopPrefix);
                 bool flag = false;
+                var sendResult = string.Empty;
                 if (shop == ShopType.ShengLv || shop == ShopType.RenNiXing)
                 {
-                    var sendResult = SMSUilitily.SendShengLv(order.contactTel, message);
+                    sendResult = SMSUilitily.SendShengLv(order.contactTel, message,1);
                     try
                     {
                         var match = Regex.Match(sendResult, "[0-9]{10,20}");
@@ -198,6 +226,18 @@ namespace Flypig.Order.Application.Order.Message
                 {
                     flag = SMSUilitily.Send(1, order.contactTel, message);
                 }
+
+                Task.Factory.StartNew(() =>
+                {
+                    try
+                    {
+                        string sql = string.Format("INSERT INTO [SMSRecord]([Phone],[Content],[Result],[CreateTime])VALUES('{0}','{1}','{2}',getdate())", order.contactTel, message, sendResult);
+                        SqlSugarContext.ResellbaseInstance.Ado.ExecuteCommand(sql);
+                    }
+                    catch
+                    {
+                    }
+                });
 
                 if (flag)
                 {
@@ -226,7 +266,7 @@ namespace Flypig.Order.Application.Order.Message
             string orderNo = string.IsNullOrEmpty(order.sourceOrderID) ? order.taoBaoOrderId.ToString() : order.sourceOrderID;
             if (type == 1)        //满房
             {
-                message = string.Format("尊敬的{0}客人,您预订的{1}酒店 订单号：{2} 经酒店回复无法确认订单,为避免影响您的行程，请申请退款并改订其他，祝您旅途愉快！如需帮助请致电0851-88574693 ", order.contactName, order.hotelName, orderNo);
+                message = string.Format("尊敬的{0}客人,您预订的{1}酒店 订单号：{2} 经酒店回复无法确认订单,为避免影响您的行程，请申请退款并改订其他，祝您旅途愉快！如需帮助请致电0851-88574693 ", order.contactName, order.hotelName, order.taoBaoOrderId);
             }
             else if (type == 2)   //沟通
             {

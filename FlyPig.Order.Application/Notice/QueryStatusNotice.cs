@@ -66,6 +66,7 @@ namespace FlyPig.Order.Application.Order.Notice
                     }
                     #endregion
 
+                    int Hour = DateTime.Now.Hour;
                     if (order.Status == 2)
                     {
                         result.Status = "4";//取消
@@ -76,6 +77,20 @@ namespace FlyPig.Order.Application.Order.Notice
                     }
                     else if (!string.IsNullOrEmpty(order.Remark) && order.Remark.Contains("该订单已入住"))
                     {
+                        result.Status = "5";  //已入住
+                    }
+                    else if (!string.IsNullOrEmpty(order.caozuo) && order.caozuo.Contains("标识客人已入住"))
+                    {
+                        result.Status = "5";  //已入住
+                    }
+                    else if (!string.IsNullOrEmpty(order.Remark) && order.CheckIn < DateTime.Now.Date && order.Remark.Contains("该订单已确认"))
+                    {
+                        //当入住日期大于当天，且已确认订单  默认为已入住
+                        result.Status = "5";  //已入住
+                    }
+                    else if (!string.IsNullOrEmpty(order.Remark) && Hour >= 23 && order.CheckIn == DateTime.Now.Date && order.Remark.Contains("该订单已确认"))
+                    {
+                        //当入住日期等于当天，且大于12点，且已确认订单   默认为已入住
                         result.Status = "5";  //已入住
                     }
                     else if (new int[] { 6, 48, 49, 52, 53, 56 }.Contains(order.Status) || (!string.IsNullOrEmpty(order.Remark)

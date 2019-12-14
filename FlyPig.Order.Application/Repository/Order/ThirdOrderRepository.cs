@@ -14,6 +14,10 @@ using FlyPig.Order.Application.Entities.Enum;
 using Flypig.Order.Application.Common;
 using FlyPig.Order.Application.Entities.Dto;
 using Newtonsoft.Json;
+using DaDuShi.Request;
+using DaDuShi.Response;
+using DaDuShi.Entities;
+using FlyPig.Order.Framework.Logging;
 
 namespace FlyPig.Order.Application.Repository.Order
 {
@@ -30,7 +34,7 @@ namespace FlyPig.Order.Application.Repository.Order
         public ThirdOrderRepository() : this(SqlSugarContext.ResellbaseInstance)
         {
         }
-
+        private readonly LogWriter orderStatuslogWriter;
         /// <summary>
         /// 构造函数
         /// </summary>
@@ -38,6 +42,7 @@ namespace FlyPig.Order.Application.Repository.Order
         public ThirdOrderRepository(SqlSugarClient sqlSugar)
         {
             sqlSugarClient = sqlSugar;
+            orderStatuslogWriter = new LogWriter("DDS/orderStatus/");
         }
 
         #region 根据订单Aid获取订单
@@ -85,7 +90,8 @@ namespace FlyPig.Order.Application.Repository.Order
                        Status = u.state,
                        CheckIn = u.checkInDate,
                        LogisticsStatus = u.logisticsStatus,
-                       OrderTime = u.orderTime
+                       OrderTime = u.orderTime,
+                       ContactTel=u.contactTel
                    }).First();
 
             return orderInfo;
@@ -155,6 +161,11 @@ namespace FlyPig.Order.Application.Repository.Order
                     //{
                     //    tbOrder.orderType = 15;
                     //}
+                }
+                else if (channel == ProductChannel.DDS)
+                {
+                    //大都市产品
+                    tbOrder.orderType = 17;
                 }
                 else
                 {
@@ -267,6 +278,20 @@ namespace FlyPig.Order.Application.Repository.Order
         }
         #endregion
 
+        #region 更新订单备注及渠道订单号
+        /// <summary>
+        /// 更新订单备注
+        /// </summary>
+        /// <param name="aid"></param>
+        /// <param name="remark"></param>
+        /// <returns></returns>
+        public bool UpdateOrderRemarkAndSourceOrderID(long aid,int status, string remark,string sourceOrderID)
+        {
+            string sql = string.Format("UPDATE  TB_hotelcashorder SET remark=remark+'{1}<br/>',sourceOrderID='{2}',state={3}   WHERE aid={0}", aid, remark, sourceOrderID, status);
+            return sqlSugarClient.Ado.ExecuteCommand(sql) > 0;
+        }
+        #endregion
+
         #region 更新发货备注
         /// <summary>
         /// 更新发货备注
@@ -308,7 +333,7 @@ namespace FlyPig.Order.Application.Repository.Order
         /// <returns></returns>
         public bool UpdateRemarkState(long aid, int status, string remark)
         {
-            string sql = string.Format("UPDATE  TB_hotelcashorder  SET remark=remark+'{0}',modifiedTime=GETDATE(),state={2}  WHERE aid={1}", remark, aid, status);
+            string sql = string.Format("UPDATE  TB_hotelcashorder  SET remark=remark+'{0}<br/>',modifiedTime=GETDATE(),state={2}  WHERE aid={1}", remark, aid, status);
             
 
             if (sqlSugarClient.Ado.ExecuteCommand(sql) == 0)
@@ -389,6 +414,20 @@ namespace FlyPig.Order.Application.Repository.Order
         }
         #endregion
 
+        #region 更新渠道订单号
+        /// <summary>
+        /// 更新订单备注
+        /// </summary>
+        /// <param name="aid"></param>
+        /// <param name="remark"></param>
+        /// <returns></returns>
+        public bool UpdateOrderSourceOrderID(long aid,string sourceOrderID)
+        {
+            string sql = string.Format("UPDATE  TB_hotelcashorder SET sourceOrderID='{1}'  WHERE aid={0}", aid, sourceOrderID);
+            return sqlSugarClient.Ado.ExecuteCommand(sql) > 0;
+        }
+        #endregion
+
         //获取携程下单到哪个马甲
         public short CtripOrderType()
         {
@@ -410,6 +449,161 @@ namespace FlyPig.Order.Application.Repository.Order
         {
             public short MeiTuan { get; set; }
             public short Ctrip { get; set; }
+        }
+
+        private OrderDataOperate _OrderDataOpEt;
+        /// <summary>
+        /// Web服务操作对象（订单）
+        /// </summary>
+        public OrderDataOperate OrderDataOpEt
+        {
+            get
+            {
+                if (_OrderDataOpEt == null)
+                    _OrderDataOpEt = new OrderDataOperate();
+
+                return _OrderDataOpEt;
+            }
+        }
+
+        /// <summary>
+        /// 获取大都市订单状态
+        /// </summary>
+        /// <param name="taobaoOrderId"></param>
+        /// <returns></returns>
+        public string GetOrderStatusDDS(string taobaoOrderId)
+        {
+            string StatusName = string.Empty;
+            //查询订单请求类
+            var request = new OrderRequestJsonEt();
+            var response = new WebServiceResponse<OrderQueryJsonEt>();
+            try
+            {
+                var order = SqlSugarContext.ResellbaseInstance.Queryable<TB_hotelcashorder>().Where(u => u.taoBaoOrderId.ToString() == taobaoOrderId).First();
+                if (order == null)
+                {
+                    StatusName = "订单不存在";
+                }
+                else
+                {
+                    StatusName = "未知状态";
+                    request = new OrderRequestJsonEt
+                    {
+                        DistributorReservationId = order.orderNO
+                    };
+                    try
+                    {
+                        response = OrderDataOpEt.OrderQuery(request);
+                    }
+                    catch (Exception ex)
+                    {
+                        response = OrderDataOpEt.OrderQuery(request);
+                    }
+                    if (response != null && response.ResponseEt != null)
+                    {
+                        if (string.IsNullOrEmpty(order.sourceOrderID) && !string.IsNullOrEmpty(response.ResponseEt.ProductReservationId))
+                        {
+                            UpdateOrderSourceOrderID(order.aId, response.ResponseEt.ProductReservationId);
+                        }
+                        if (response.ResponseEt.ReservationStatus != null && response.ResponseEt.ReservationStatus.ToLower().Contains("confirmed"))
+                        {
+                            StatusName = "已确认";
+                            try
+                            {
+                                string strRequest = Newtonsoft.Json.JsonConvert.SerializeObject(request);
+                                string strresponse = Newtonsoft.Json.JsonConvert.SerializeObject(response);
+                                string orderText = "查询订单号：" + order.orderNO + "请求数据：" + strRequest + "\r\n" + "返回数据：" + strresponse + "\r\n" + "------------------------------------------";
+                                orderStatuslogWriter.Write(orderText);
+                            }
+                            catch (Exception exOrder)
+                            {
+                            }
+                        }
+                        else if (response.ResponseEt.ReservationStatus.ToLower().Contains("canceled"))
+                        {
+                            StatusName = "取消";
+                            try
+                            {
+                                string strRequest = Newtonsoft.Json.JsonConvert.SerializeObject(request);
+                                string strresponse = Newtonsoft.Json.JsonConvert.SerializeObject(response);
+                                string orderText = "查询订单号：" + order.orderNO + "请求数据：" + strRequest + "\r\n" + "返回数据：" + strresponse + "\r\n" + "------------------------------------------";
+                                orderStatuslogWriter.Write(orderText);
+                            }
+                            catch (Exception exOrder)
+                            {
+                            }
+                        }
+                        else if (response.ResponseEt.ReservationStatus.ToLower().Contains("pending"))
+                        {
+                            StatusName = "预订中";
+                            //记录查询订单不确定订单日志
+                            //try
+                            //{
+                            //    string strRequest = Newtonsoft.Json.JsonConvert.SerializeObject(request);
+                            //    string strresponse = Newtonsoft.Json.JsonConvert.SerializeObject(response);
+                            //    string orderText = "查询订单号：" + order.orderNO + "请求数据：" + strRequest + "\r\n" + "返回数据：" + strresponse + "\r\n" + "------------------------------------------";
+                            //    orderStatuslogWriter.Write(orderText);
+                            //}
+                            //catch (Exception exOrder)
+                            //{
+                            //}
+                        }
+                        else if (response.ResponseEt.ReservationStatus.ToLower().Contains("failed"))
+                        {
+                            StatusName = "供应商返回发生错误";
+                            //记录查询订单不确定订单日志
+                            try
+                            {
+                                string strRequest = Newtonsoft.Json.JsonConvert.SerializeObject(request);
+                                string strresponse = Newtonsoft.Json.JsonConvert.SerializeObject(response);
+                                string orderText = "查询订单号：" + order.orderNO + "请求数据：" + strRequest + "\r\n" + "返回数据：" + strresponse + "\r\n" + "------------------------------------------";
+                                orderStatuslogWriter.Write(orderText);
+                            }
+                            catch (Exception exOrder)
+                            {
+                            }
+                        }
+                        else
+                        {
+                            StatusName = "未知状态";
+                            //记录查询订单不确定订单日志
+                            try
+                            {
+                                string strRequest = Newtonsoft.Json.JsonConvert.SerializeObject(request);
+                                string strresponse = Newtonsoft.Json.JsonConvert.SerializeObject(response);
+                                string orderText = "查询订单号：" + order.orderNO + "请求数据：" + strRequest + "\r\n" + "返回数据：" + strresponse + "\r\n" + "------------------------------------------";
+                                orderStatuslogWriter.Write(orderText);
+                            }
+                            catch (Exception exOrder)
+                            {
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (string.IsNullOrEmpty(order.sourceOrderID))
+                        {
+                            StatusName = "未下单到大都市";
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusName = "查询失败";
+                //记录查询订单不确定订单日志
+                try
+                {
+                    string strRequest = Newtonsoft.Json.JsonConvert.SerializeObject(request);
+                    string strresponse = Newtonsoft.Json.JsonConvert.SerializeObject(response);
+                    string orderText = "查询订单飞猪订单号：" + taobaoOrderId + "请求数据：" + strRequest + "\r\n" + "返回数据：" + strresponse + "\r\n" + "------------------------------------------";
+                    orderStatuslogWriter.Write(orderText);
+                }
+                catch (Exception exOrder)
+                {
+                }
+            }
+            return StatusName;
         }
     }
 }

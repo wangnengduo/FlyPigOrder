@@ -483,6 +483,8 @@ namespace LingZhong.HotelManager.Application.Channel.Ctrip.Order
             var result = new ServiceResult();
             string message = string.Empty;
             var order = SqlSugarContext.TravelskyInstance.Queryable<dingdan_info>().Where(u => (u.PriceOrderWay == 66 || u.PriceOrderWay == 16 || u.PriceOrderWay == 86) && u.fax == id.ToString()).First();
+            var orderTB = SqlSugarContext.ResellbaseInstance.Queryable<TB_hotelcashorder>().Where(u => u.taoBaoOrderId == id).First();
+
             try
             {
 
@@ -506,8 +508,11 @@ namespace LingZhong.HotelManager.Application.Channel.Ctrip.Order
                         {
                             order.state = 7;
                             order.beizhu = string.Format("{0}<span style='color:blue'>【携程】:订单取消失败，具体原因(取消失败，请人工跟进) [{1}] </span> <br/>", order.beizhu, DateTime.Now.ToString());
+                            orderTB.state = 7;
+                            orderTB.remark = string.Format("{0}<span style='color:blue'>【携程】:订单取消失败，具体原因(取消失败，请人工跟进) [{1}] </span> <br/>", orderTB.remark, DateTime.Now.ToString());
                             result.SetError("订单取消失败，具体原因(取消失败，请人工跟进)");
                             var updateSuccess = SqlSugarContext.TravelskyInstance.Updateable(order).UpdateColumns(u => new { u.beizhu, u.state }).ExecuteCommand() > 0;
+                            var updateSuccessTb = SqlSugarContext.ResellbaseInstance.Updateable(orderTB).UpdateColumns(u => new { u.remark, u.state }).ExecuteCommand() > 0;
                             return result;
                         }
                         catch
@@ -522,28 +527,35 @@ namespace LingZhong.HotelManager.Application.Channel.Ctrip.Order
                     return result.SetError("取消失败，订单不存在！");
                 }
 
-                string remark = string.Format("【XL】：订单申请取消..    [{1}] <br/>{0}", order.beizhu, DateTime.Now.ToString());
+                string remark = string.Format("{0}【AY】：订单申请取消..    [{1}] <br/>", order.beizhu, DateTime.Now.ToString());
+                //string remarkTB = string.Format("{0}【系统】：订单申请取消..    [{1}] <br/>", orderTB.remark, DateTime.Now.ToString());
                 var isSussess = ctripClient.CancelOrder(order.ElongOrderID, ref message);
                 if (isSussess)
                 {
                     order.state = 2;
                     if (remark.Contains("该订单已确认"))
                     {
-                        remark = string.Format("{0}【XL】：客人已撤销担保  [{1}]<br/>", remark, DateTime.Now.ToString());
+                        remark = string.Format("{0}【AY】：客人已撤销担保  [{1}]<br/>", remark, DateTime.Now.ToString());
                         order.state = 7;
                     }
 
                     order.beizhu = string.Format("{0}【携程】:订单取消成功 [{1}]<br/>", remark, DateTime.Now.ToString());
+
+                    orderTB.remark = string.Format("{0}【携程】:订单取消成功 [{1}]<br/>", orderTB.remark, DateTime.Now.ToString());
                     result.SetSucess("订单取消成功");
                 }
                 else
                 {
                     order.state = 7;
                     order.beizhu = string.Format("{0}【携程】:订单取消失败，具体原因({1}) [{2}]<br/>", remark, message, DateTime.Now.ToString());
+
+                    orderTB.state = 7;
+                    orderTB.remark = string.Format("{0}【携程】:订单取消失败，具体原因({1}) [{2}]<br/>", orderTB.remark, message, DateTime.Now.ToString());
                     result.SetError("订单取消失败，具体原因：{0}", message);
                 }
 
                 var flag = SqlSugarContext.TravelskyInstance.Updateable(order).UpdateColumns(u => new { u.beizhu, u.state }).ExecuteCommand() > 0;
+                var flagTb = SqlSugarContext.ResellbaseInstance.Updateable(orderTB).UpdateColumns(u => new { u.remark, u.state }).ExecuteCommand() > 0;
 
             }
             catch

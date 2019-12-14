@@ -78,6 +78,8 @@ namespace FlyPig.Order.Application.Hotel.Channel
         /// <returns></returns>
         public BookingCheckOutDto BookingCheck(BookingCheckInputDto checkDto)
         {
+            var checkKey = "mt_" + checkDto.HotelId + "_" + checkDto.RoomTypeId + "_" + checkDto.RatePlanId + "_" + checkDto.CheckIn + "_" + checkDto.CheckOut;
+
             var bookOutDto = new BookingCheckOutDto();
             try
             {
@@ -94,23 +96,23 @@ namespace FlyPig.Order.Application.Hotel.Channel
                     HotelId = checkDto.HotelId,
                     GoodsId = checkDto.RatePlanId,
                     RoomNum = checkDto.RoomNum,
-                    totalPrice = totalPrice
+                    totalPrice = totalPrice * checkDto.RoomNum
                 };
                 var response = meiTuanApiClient.Excute(request);
                 TimeSpan ts = checkDto.CheckOut.Subtract(checkDto.CheckIn);
 
-                if (response.Result.code == 0)
+                if (response.Result.code == 0 && (response.Result.desc == null || !response.Result.desc.Contains("价格发生变化")))
                 {
-                    var hotelExtension = hotelRepository.GetHotelExtension(checkDto.HotelId, (int)Channel);
-                    var invoiceInfo = GetRatePlanInvoice(checkDto.HotelId, checkDto.RatePlanId, checkDto.CheckIn, checkDto.CheckOut);
+                    //var hotelExtension = hotelRepository.GetHotelExtension(checkDto.HotelId, (int)Channel);
+                    //var invoiceInfo = GetRatePlanInvoice(checkDto.HotelId, checkDto.RatePlanId, checkDto.CheckIn, checkDto.CheckOut);
                     bookOutDto.IsBook = true;
                     int remainRoomNum = response.Result.remainRoomNum;
                     int Quota = 5;
-                    if (remainRoomNum == 0)
+                    if (remainRoomNum < 1)
                     {
                         Quota = 1;
                     }
-                    else if (remainRoomNum == 999)
+                    else if (remainRoomNum > 5)
                     {
                         Quota = 5;
                     }
@@ -123,7 +125,7 @@ namespace FlyPig.Order.Application.Hotel.Channel
                     try
                     {
                         XhotelRateGetRequest req = new XhotelRateGetRequest();
-                        req.OutRid = checkDto.RatePlanCode.Split('_')[0] + "_" + checkDto.RatePlanCode.Split('_')[1];
+                        req.OutRid = checkDto.OuterId;
                         req.Rpid = checkDto.Rpid;
                         var tmallApiClient = new TmallApiClient(Shop);
                         XhotelRateGetResponse resp = tmallApiClient.Execute(req);
@@ -145,12 +147,15 @@ namespace FlyPig.Order.Application.Hotel.Channel
                             modelList.Add(item);
                         }
                     }
+                    //是否供应商发生变价
+                    bool bianhua = false;
 
                     foreach (var item in modelList)
                     {
                         RateQuotasPrice rqp = new RateQuotasPrice();
                         rqp.Date = item.date;
-                        rqp.Price = GetSalePrice(Convert.ToDateTime(item.date), checkDto.IsVirtual, invoiceInfo.IsCommission, invoiceInfo.InvoiceMode, Convert.ToDecimal(item.subRatio / 10000), item.salePrice / 100, hotelExtension, rate).ToTaoBaoPrice();
+                        //checkDto.IsVirtual, invoiceInfo.IsCommission, invoiceInfo.InvoiceMode, Convert.ToDecimal(item.subRatio / 10000), item.salePrice / 100, hotelExtension, rate
+                        rqp.Price = GetSalePrice(Convert.ToDateTime(item.date), checkDto.IsVirtual,  Convert.ToDecimal(item.subRatio / 10000), item.salePrice / 100, rate, ref bianhua, checkDto.IsCustomer).ToTaoBaoPrice();
                         rqp.Quota = Quota;//5;
                         bookOutDto.DayPrice.Add(rqp);
                     }
@@ -160,10 +165,15 @@ namespace FlyPig.Order.Application.Hotel.Channel
                         try
                         {
                             bool IsFull = false;
+                            string Remark = bookOutDto.Message;
                             //当库存为0时关房
-                            if (remainRoomNum == 0)
+                            if (remainRoomNum == 0 && checkDto.IsCustomer == 1)
                             {
                                 IsFull = true;
+                            }
+                            if (checkDto.IsCustomer == 0)
+                            {
+                                Remark = "程序请求";
                             }
                             AliTripValidate av = new AliTripValidate();
                             av.CheckInTime = checkDto.CheckIn;
@@ -176,16 +186,22 @@ namespace FlyPig.Order.Application.Hotel.Channel
                             av.CreateTime = DateTime.Now;
                             av.Channel = 5;
                             av.Shop = (int)Shop;
-                            av.Remark = bookOutDto.Message;
+                            av.Remark = Remark;
                             SqlSugarContext.RenNiXingInstance.Insertable(av).ExecuteCommand();
-
                             string url = string.Format("http://localhost:8097/apiAshx/UpdateRoomRate.ashx?type=RoomRate&hid={0}&source=5", checkDto.HotelId);
                             WebHttpRequest.Get(url);
+                            //当价格改变时或库存为0时更新房态
+                            //if (bianhua || remainRoomNum == 0)
+                            //{
+                            //    string url = string.Format("http://localhost:8097/apiAshx/UpdateRoomRate.ashx?type=RoomRate&hid={0}&source=5", checkDto.HotelId);
+                            //    WebHttpRequest.Get(url);
+                            //}
                         }
                         catch
                         {
 
                         }
+                        
                     });
                 }
                 else
@@ -200,18 +216,44 @@ namespace FlyPig.Order.Application.Hotel.Channel
                     {
                         var falseCount = 1;
                         var falseCacheCount = CacheHelper.GetCache("falseCount");//先读取缓存
-                        if (falseCacheCount != null)//如果没有该缓存,默认为1
+                        //当为客人请求才做记录数次
+                        if (checkDto.IsCustomer == 1)
                         {
-                            falseCount = (int)falseCacheCount + 1;
+                            if (falseCacheCount != null)//如果没有该缓存,默认为1
+                            {
+                                falseCount = (int)falseCacheCount + 1;
+                            }
+                            CacheHelper.SetCache("falseCount", falseCount, 1800);//添加缓存
                         }
-                        CacheHelper.SetCache("falseCount", falseCount, 1800);//添加缓存
                         //如果试单失败为双数直接拿缓存值输出，单数时为失败
                         //if (falseCount % 2 == 0)
-                        if (falseCount % 2 == 0)
+                        bool tongguo = true;
+
+                        //在0点15分到4点为试单失败为双数直接拿缓存值输出，其余的都通过
+                        int NowHour = DateTime.Now.Hour;//当前时间的时数
+                        int NowMinute = DateTime.Now.Minute;//当前时间的分钟数
+                        //if ((NowHour == 0 && NowMinute > 15) || (NowHour > 0 && NowHour < 4))
+                        //{
+                        //    if (falseCount % 2 == 0)
+                        //    {
+                        //        tongguo = true;
+                        //    }
+                        //    else
+                        //    {
+                        //        tongguo = false;
+                        //    }
+                        //}
+                        //if (falseCount % 6 == 0 || checkDto.IsCustomer == 0 || response.Result.desc.Contains("价格发生变化"))
+                        if(checkDto.IsCustomer == 0)
+                        {
+                            bookOutDto.Message = response.Result.desc;
+                            bookOutDto.IsBook = false;
+                        }
+                        else if(falseCount % 2 == 0 || response.Result.desc.Contains("价格发生变化"))
                         {
                             var rate = new TaobaoRate();
                             XhotelRateGetRequest req = new XhotelRateGetRequest();
-                            req.OutRid = checkDto.RatePlanCode.Split('_')[0] + "_" + checkDto.RatePlanCode.Split('_')[1];
+                            req.OutRid = checkDto.OuterId;
                             req.Rpid = checkDto.Rpid;
                             var tmallApiClient = new TmallApiClient(Shop);
                             XhotelRateGetResponse resp = tmallApiClient.Execute(req);
@@ -252,16 +294,71 @@ namespace FlyPig.Order.Application.Hotel.Channel
                                 {
                                     Date = u.date,
                                     Price = u.price,
-                                    Quota = 5
+                                    Quota = 1
                                 }).ToList();
                                 bookOutDto.Message = "正常可预定";
                                 bookOutDto.IsBook = true;
-                                logWriter.Write("试单失败后通过（美团）：试单失败-淘宝酒店id：{0},美团酒店id：{1},{2},失败数次：{3},失败原因{4}", checkDto.Hid, checkDto.HotelId, checkDto.Rpid, falseCount, response.Result.desc);
+                                //logWriter.Write("试单失败后通过（美团）：试单失败-淘宝酒店id：{0},美团酒店id：{1},{2},失败数次：{3},失败原因{4}", checkDto.Hid, checkDto.HotelId, checkDto.Rpid, falseCount, response.Result.desc);
+                            }
+                        }
+                        else if (falseCount % 3 == 0)
+                        {
+                            var rate = new TaobaoRate();
+                            XhotelRateGetRequest req = new XhotelRateGetRequest();
+                            req.OutRid = checkDto.OuterId;
+                            req.Rpid = checkDto.Rpid;
+                            var tmallApiClient = new TmallApiClient(Shop);
+                            XhotelRateGetResponse resp = tmallApiClient.Execute(req);
+                            if (resp != null && !resp.IsError && resp.Rate != null && !string.IsNullOrWhiteSpace(resp.Rate.InventoryPrice))
+                            {
+                                //try
+                                //{
+                                //    rate = JsonConvert.DeserializeObject<TaobaoRate>(resp.Rate.InventoryPrice);
+                                //}
+                                //catch (Exception ex)
+                                //{
+                                //}
+                                rate = JsonConvert.DeserializeObject<TaobaoRate>(resp.Rate.InventoryPrice);
+                            }
+                            var totalDayNum = (int)(checkDto.CheckOut.Date - checkDto.CheckIn).TotalDays;
+                            var rates = new List<inventory_price>();
+                            //判断是否已经更新过飞猪房态，0为没更新过，1为已更新过为不可以预定
+                            int IsClose = 0;
+                            for (int i = 0; i < totalDayNum; i++)
+                            {
+                                var inventory_price = rate.inventory_price.Where(a => a.date == checkDto.CheckIn.AddDays(i).ToString("yyyy-MM-dd")).FirstOrDefault();
+                                if (inventory_price.price <= 0 || inventory_price.price > 4999900)
+                                {
+                                    IsClose = 1;
+                                    bookOutDto.Message = response.Result.desc;
+                                    bookOutDto.IsBook = false;
+                                }
+                                else
+                                {
+                                    rates.Add(inventory_price);
+                                }
+                            }
+
+                            if (IsClose == 0)
+                            {
+                                Random ran = new Random();
+                                int RandomResult = ran.Next(80, 200);
+
+                                bookOutDto.DayPrice = rates.Select(u =>
+                                new RateQuotasPrice
+                                {
+                                    Date = u.date,
+                                    Price = u.price + RandomResult * 100m,
+                                    Quota = 1
+                                }).ToList();
+                                bookOutDto.Message = "正常可预定";
+                                bookOutDto.IsBook = true;
+                                //logWriter.Write("试单失败后通过（美团）：试单失败-淘宝酒店id：{0},美团酒店id：{1},{2},失败数次：{3},失败原因{4}", checkDto.Hid, checkDto.HotelId, checkDto.Rpid, falseCount, response.Result.desc);
                             }
                         }
                         else
                         {
-                            logWriter.Write("试单失败后（美团）：试单失败-淘宝酒店id：{0},美团酒店id：{1},{2},失败数次：{3},失败原因{4}", checkDto.Hid, checkDto.HotelId, checkDto.Rpid, falseCount, response.Result.desc);
+                            //logWriter.Write("试单失败后（美团）：试单失败-淘宝酒店id：{0},美团酒店id：{1},{2},失败数次：{3},失败原因{4}", checkDto.Hid, checkDto.HotelId, checkDto.Rpid, falseCount, response.Result.desc);
                             bookOutDto.Message = response.Result.desc;
                             bookOutDto.IsBook = false;
                         }
@@ -270,11 +367,23 @@ namespace FlyPig.Order.Application.Hotel.Channel
                         {
                             try
                             {
+                                string Remark= response.Result.desc;
+                                bool IsFull = true;
+                                if (checkDto.IsCustomer == 0)
+                                {
+                                    Remark = "程序请求";
+                                    IsFull = false;
+                                }
+                                else if (response.Result.desc.Contains("价格发生变化"))
+                                {
+                                    Remark = "价格发生变化";
+                                    IsFull = false;
+                                }
                                 AliTripValidate av = new AliTripValidate();
                                 av.CheckInTime = checkDto.CheckIn;
                                 av.CheckOutTime = checkDto.CheckOut;
                                 av.RatePlanCode = checkDto.RatePlanCode;
-                                av.IsFull = true;
+                                av.IsFull = IsFull;
                                 av.HotelId = checkDto.HotelId;
                                 av.RoomId = checkDto.RoomTypeId;
                                 av.RatePlanId = checkDto.RatePlanId;
@@ -282,15 +391,14 @@ namespace FlyPig.Order.Application.Hotel.Channel
 
                                 av.Channel = 5;
                                 av.Shop = (int)Shop;
-                                av.Remark = response.Result.desc;
+                                av.Remark = Remark;
                                 SqlSugarContext.RenNiXingInstance.Insertable(av).ExecuteCommand();
-
-                                string url = string.Format("http://localhost:8097/apiAshx/UpdateRoomRate.ashx?type=RoomRate&hid={0}&source=5", checkDto.HotelId);
-                                WebHttpRequest.Get(url);
                             }
                             catch
                             {
                             }
+                            string url = string.Format("http://localhost:8097/apiAshx/UpdateRoomRate.ashx?type=RoomRate&hid={0}&source=5", checkDto.HotelId);
+                            WebHttpRequest.Get(url);
                         });
                     }
                     catch (Exception ex)
@@ -300,11 +408,18 @@ namespace FlyPig.Order.Application.Hotel.Channel
                         {
                             try
                             {
+                                bool IsFull = true;
+                                string Remark = response.Result.desc;
+                                if (checkDto.IsCustomer == 0)
+                                {
+                                    Remark = "程序请求";
+                                    IsFull = false;
+                                }
                                 AliTripValidate av = new AliTripValidate();
                                 av.CheckInTime = checkDto.CheckIn;
                                 av.CheckOutTime = checkDto.CheckOut;
                                 av.RatePlanCode = checkDto.RatePlanCode;
-                                av.IsFull = true;
+                                av.IsFull = IsFull;
                                 av.HotelId = checkDto.HotelId;
                                 av.RoomId = checkDto.RoomTypeId;
                                 av.RatePlanId = checkDto.RatePlanId;
@@ -312,17 +427,16 @@ namespace FlyPig.Order.Application.Hotel.Channel
 
                                 av.Channel = 5;
                                 av.Shop = (int)Shop;
-                                av.Remark = response.Result.desc;
+                                av.Remark = Remark;
                                 SqlSugarContext.RenNiXingInstance.Insertable(av).ExecuteCommand();
-
-                                string url = string.Format("http://localhost:8097/apiAshx/UpdateRoomRate.ashx?type=RoomRate&hid={0}&source=5", checkDto.HotelId);
-                                WebHttpRequest.Get(url);
                             }
                             catch
                             {
                             }
+                            string url = string.Format("http://localhost:8097/apiAshx/UpdateRoomRate.ashx?type=RoomRate&hid={0}&source=5", checkDto.HotelId);
+                            WebHttpRequest.Get(url);
                         });
-                        logWriter.Write("试单失败后报错（美团）：试单失败-淘宝酒店id：{0},美团酒店id：{1},{2},失败原因{3}，报错{4}", checkDto.Hid, checkDto.HotelId, checkDto.Rpid, response.Result.desc, ex.ToString());
+                        //logWriter.Write("试单失败后报错（美团）：试单失败-淘宝酒店id：{0},美团酒店id：{1},{2},失败原因{3}，报错{4}", checkDto.Hid, checkDto.HotelId, checkDto.Rpid, response.Result.desc, ex.ToString());
                         bookOutDto.Message = response.Result.desc;
                         bookOutDto.IsBook = false;
                     }
@@ -333,6 +447,32 @@ namespace FlyPig.Order.Application.Hotel.Channel
                 bookOutDto.IsBook = false;
                 bookOutDto.Message = string.Format("满房，系统异常：{0}", ex.ToString());
             }
+            if (checkDto.IsCustomer == 0)
+            {
+                try
+                {
+                    BookingCheckOutDto CheckOut = new BookingCheckOutDto();
+                    var check = CacheHelper.GetCache(checkKey);//先读取缓存
+                    if (check != null)//如果没有该缓存
+                    {
+                        CheckOut = Newtonsoft.Json.JsonConvert.DeserializeObject<BookingCheckOutDto>(check.ToString(), new JsonSerializerSettings
+                        {
+                            Error = delegate (object obj, Newtonsoft.Json.Serialization.ErrorEventArgs args)
+                            {
+                                args.ErrorContext.Handled = true;
+                            }
+                        });
+                        if (CheckOut != null)
+                        {
+                            return CheckOut;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                }
+            }
+            CacheHelper.SetCache(checkKey, Newtonsoft.Json.JsonConvert.SerializeObject(bookOutDto), 8);//添加缓存
             return bookOutDto;
         }
 
@@ -348,9 +488,13 @@ namespace FlyPig.Order.Application.Hotel.Channel
         /// <param name="guidePrice">指导价</param>
         /// <param name="hotelExtension">酒店扩展信息</param>
         /// <param name="TaobaoRate">上传给淘宝的价格计划</param>
+        /// <param name="bianhua">输出价格是否发生变化</param>
+        /// <param name="IsCustomer">1为是客户请求，0为程序请求</param>
+        ///  bool isVirtual, bool isCommission, int invoiceMode, decimal subRate, decimal guidePrice, AliTripHotelExtension hotelExtension, TaobaoRate rate
         /// <returns></returns>
-        private decimal GetSalePrice(DateTime date, bool isVirtual, bool isCommission, int invoiceMode, decimal subRate, decimal guidePrice, AliTripHotelExtension hotelExtension, TaobaoRate rate)
+        private decimal GetSalePrice(DateTime date, bool isVirtual, decimal subRate, decimal guidePrice, TaobaoRate rate, ref bool bianhua,int IsCustomer = 1)
         {
+            bianhua = false;
             decimal salePrice = guidePrice;
             decimal addPoint = 1;
             decimal basePrice = guidePrice * (1 - (decimal)subRate);
@@ -360,13 +504,13 @@ namespace FlyPig.Order.Application.Hotel.Channel
             var deductPoint = false;
             var isAddRedEnvelope = true;
 
-            if (hotelExtension != null)
-            {
-                isGuidePrice = hotelExtension.Extension3 ?? 0;
-                isReduce = hotelExtension.Extension ?? false;         //价格控制总阀
-                deductPoint = hotelExtension.Extension4 == 1;     //下降一个点
-                isAddRedEnvelope = hotelExtension.Extension5 == 1;
-            }
+            //if (hotelExtension != null)
+            //{
+            //    isGuidePrice = hotelExtension.Extension3 ?? 0;
+            //    isReduce = hotelExtension.Extension ?? false;         //价格控制总阀
+            //    deductPoint = hotelExtension.Extension4 == 1;     //下降一个点
+            //    isAddRedEnvelope = hotelExtension.Extension5 == 1;
+            //}
 
             if (isGuidePrice == 1)
             {
@@ -471,22 +615,36 @@ namespace FlyPig.Order.Application.Hotel.Channel
             //}
             //salePrice = Math.Round(salePrice * 0.995m) + 0.49m;
 
-            if (isCommission)
+            //if (isCommission)
+            //{
+            //    salePrice = salePrice * 1.01M;//代理加一个点
+            //}
+            if (salePrice >= 70 && salePrice <= 230)
             {
-                salePrice = salePrice * 1.01M;//代理加一个点
+                salePrice = salePrice * 0.998m;
             }
-            
 
-            salePrice = Math.Round(salePrice) + 0.49m;
+            if (date >= new DateTime(2019, 12, 31))
+            {
+                salePrice = salePrice * 1.015m;
+            }
+            salePrice = Math.Floor(salePrice) + 0.49m;
             if (rate != null && rate.inventory_price != null && rate.inventory_price.Count > 0)
             {
                 var inventory_price = rate.inventory_price.Where(a => Convert.ToDateTime(a.date) == date).FirstOrDefault();
                 if (inventory_price.price > 0 && inventory_price.price <= 4999900)
                 {
                     //当降价了，直接输出之前推送的价格
-                    if (Convert.ToDecimal(inventory_price.price) / 100 >= salePrice * 0.995m || (salePrice - Convert.ToDecimal(inventory_price.price) / 100) <= 1)
+                    if (Convert.ToDecimal(inventory_price.price) / 100 >= salePrice * 0.97m || (salePrice - Convert.ToDecimal(inventory_price.price) / 100) <= 40)
                     {
-                        return Convert.ToDecimal(inventory_price.price) / 100;
+                        if (Convert.ToDecimal(inventory_price.price) / 100 != salePrice)
+                        {
+                            bianhua = true;
+                        }
+                        if (IsCustomer != 0)
+                        {
+                            return Convert.ToDecimal(inventory_price.price) / 100;
+                        }
                     }
                     //else if ((inventory_price.price / 100) * 1.01m > salePrice)
                     //{
@@ -517,8 +675,16 @@ namespace FlyPig.Order.Application.Hotel.Channel
                 HotelIds = new List<long> { hotelId
                 }
             };
-
-            var response = meiTuanApiClient.Excute(request);
+            //当失败时重新试单
+            var response = new HotelGoodsResponse();
+            try
+            {
+                response = meiTuanApiClient.Excute(request);
+            }
+            catch (Exception exMt)
+            {
+                response = meiTuanApiClient.Excute(request);
+            }
             if (response != null && response.Result != null && response.Result.hotelGoods != null && response.Result.hotelGoods.Count > 0)
             {
                 var rplist = response.Result.hotelGoods[0].goods;
@@ -650,42 +816,55 @@ namespace FlyPig.Order.Application.Hotel.Channel
         public decimal getTotaPrice(BookingCheckInputDto checkDto)
         {
             decimal salePrice = 0;
-            long hotelId = Convert.ToInt64(checkDto.HotelId);
-            int rpid = Convert.ToInt32(checkDto.RatePlanId);
-            var request = new HotelGoodsRequest
+            try
             {
-                CheckinDate = checkDto.CheckIn.ToString("yyyy-MM-dd"),
-                CheckoutDate = checkDto.CheckOut.ToString("yyyy-MM-dd"),
-                GoodsType = 1,
-                HotelIds = new List<long> { hotelId
-                }
-            };
-
-            var response = meiTuanApiClient.Excute(request);
-            if (response != null && response.Result != null && response.Result.hotelGoods != null && response.Result.hotelGoods.Count > 0)
-            {
-                var rplist = response.Result.hotelGoods[0].goods;
-                var currentRp = rplist.Where(u => u.hotelId == hotelId && u.goodsId == rpid).FirstOrDefault();
-                if (currentRp != null)
+                long hotelId = Convert.ToInt64(checkDto.HotelId);
+                int rpid = Convert.ToInt32(checkDto.RatePlanId);
+                var request = new HotelGoodsRequest
                 {
-
-
-                    //priceInfo.RatePlanName = string.Format("{0} [{1}早]", priceInfo.RatePlanName, );
-                    string priceStr = string.Empty;
-                    decimal sTotalPrice = 0;
-                    decimal sBasePrice = 0;
-                    
-
-                    foreach (var item in currentRp.priceModels)
+                    CheckinDate = checkDto.CheckIn.ToString("yyyy-MM-dd"),
+                    CheckoutDate = checkDto.CheckOut.ToString("yyyy-MM-dd"),
+                    GoodsType = 1,
+                    HotelIds = new List<long> { hotelId
+                }
+                };
+                var response = new HotelGoodsResponse();
+                try
+                {
+                    response = meiTuanApiClient.Excute(request);
+                }
+                catch (Exception exstr)
+                {
+                    response = meiTuanApiClient.Excute(request);
+                }
+                if (response != null && response.Result != null && response.Result.hotelGoods != null && response.Result.hotelGoods.Count > 0)
+                {
+                    var rplist = response.Result.hotelGoods[0].goods;
+                    var currentRp = rplist.Where(u => u.hotelId == hotelId && u.goodsId == rpid).FirstOrDefault();
+                    if (currentRp != null)
                     {
-                        var subPricedic = item.subPrice;
-                        decimal basePrice = item.salePrice - item.subPrice;
-                        sBasePrice += basePrice;
-                        sTotalPrice += subPricedic;
-                        salePrice += item.salePrice;
-                        priceStr += "price" + basePrice / 100 + "|" + item.salePrice / 100 + "|money" + basePrice / 100 + "|0|";
+
+
+                        //priceInfo.RatePlanName = string.Format("{0} [{1}早]", priceInfo.RatePlanName, );
+                        string priceStr = string.Empty;
+                        decimal sTotalPrice = 0;
+                        decimal sBasePrice = 0;
+
+
+                        foreach (var item in currentRp.priceModels)
+                        {
+                            var subPricedic = item.subPrice;
+                            decimal basePrice = item.salePrice - item.subPrice;
+                            sBasePrice += basePrice;
+                            sTotalPrice += subPricedic;
+                            salePrice += item.salePrice;
+                            priceStr += "price" + basePrice / 100 + "|" + item.salePrice / 100 + "|money" + basePrice / 100 + "|0|";
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
             }
             return salePrice;
         }

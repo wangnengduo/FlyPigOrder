@@ -10,6 +10,7 @@ using FlyPig.Order.Core.Model;
 using Flypig.Order.Application.Order.Entities;
 using FlyPig.Order.Framework.HttpWeb;
 using Newtonsoft.Json;
+using FlyPig.Order.Framework.Logging;
 
 namespace FlyPig.Order.Application.Order.Notice
 {
@@ -18,8 +19,10 @@ namespace FlyPig.Order.Application.Order.Notice
     /// </summary>
     public class ValidateNotice : BaseOrderNotice<ValidateRQ, ValidateRQResult>
     {
+        private readonly LogWriter logWriter;
         public ValidateNotice(ShopType shop) : base(shop)
         {
+            logWriter = new LogWriter("Tmall/CreateToken");
         }
 
         protected override string ChannelDiscernmentCode => Request.RatePlanCode;
@@ -28,6 +31,13 @@ namespace FlyPig.Order.Application.Order.Notice
         {
             var result = new ValidateRQResult();
             var hotelInfo = GetIdInfoByRpCode(Request.RatePlanCode);
+            int IsCustomer = 1;
+            if (Request.AuthenticationToken != null && Request.AuthenticationToken.CreateToken != null && Request.AuthenticationToken.CreateToken.ToLower().Contains("validate"))
+            {
+                //飞猪程序测试
+                IsCustomer = 0;
+            }
+            //logWriter.Write("记录CreateToken：{0},转为小写：{1}", Request.AuthenticationToken.CreateToken, Request.AuthenticationToken.CreateToken.ToLower());
             var bookCheckDto = new BookingCheckInputDto
             {
                 CheckIn = Request.CheckIn,
@@ -39,7 +49,9 @@ namespace FlyPig.Order.Application.Order.Notice
                 Rpid = Request.TaoBaoRatePlanId,
                 Hid = Request.TaoBaoHotelId,
                 RoomNum = Request.RoomNum,
-                CustomerNumber = Request.CustomerNumber
+                OuterId= Request.RoomTypeId,
+                CustomerNumber = Request.CustomerNumber,
+                IsCustomer = IsCustomer
             };
 
             if (Request.RatePlanCode.Split('_').Length > 3)
@@ -97,18 +109,18 @@ namespace FlyPig.Order.Application.Order.Notice
                 result.InventoryPrice = string.Empty;
 
                 #region 异步关闭当日房间
-                Task.Factory.StartNew(() =>
-                {
-                    try
-                    {
-                        ////异步更新房态
-                        //RoomRateService roomRateService = new RoomRateService(Shop, Channel);
-                        //roomRateService.CloseRoom(Request.RoomTypeId, Request.RatePlanCode, Request.CheckIn, Request.CheckOut);
-                    }
-                    catch
-                    {
-                    }
-                });
+                //Task.Factory.StartNew(() =>
+                //{
+                //    try
+                //    {
+                //        ////异步更新房态
+                //        //RoomRateService roomRateService = new RoomRateService(Shop, Channel);
+                //        //roomRateService.CloseRoom(Request.RoomTypeId, Request.RatePlanCode, Request.CheckIn, Request.CheckOut);
+                //    }
+                //    catch
+                //    {
+                //    }
+                //});
                 #endregion
             }
 
@@ -144,6 +156,12 @@ namespace FlyPig.Order.Application.Order.Notice
             });
             */
             #endregion
+
+            //if (Request.AuthenticationToken.CreateToken.ToLower().Contains("validate"))
+            //{
+            //    logWriter.Write("记录CreateToken：{0},返回内容：{1}，RatePlanCode:{2}", Request.AuthenticationToken.CreateToken, result.ResultCode, Request.RatePlanCode);
+            //}
+            logWriter.Write("记录静订结果：请求数据{0},返回内容：{1}", Newtonsoft.Json.JsonConvert.SerializeObject(bookCheckDto), Newtonsoft.Json.JsonConvert.SerializeObject(result));
             return result;
         }
     }

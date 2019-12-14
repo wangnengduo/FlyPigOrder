@@ -176,7 +176,14 @@ namespace FlyPig.Order.Application.Order.Notice
             try
             {
                 var idDto = new HotelIdDto();
-                rpCode = Regex.Replace(rpCode, "[A-Za-z]+", "");
+                if (rpCode.Substring(0, 2) == "xr" || rpCode.Substring(0, 2) == "mr")
+                {
+                    rpCode = Regex.Replace(rpCode, "[A-Za-z]+", "");
+                }
+                else
+                {
+                    rpCode = rpCode.Replace("dr", "");
+                }
                 var hotelInfo = rpCode.Split('_');
                 idDto.HotelId = hotelInfo[0];
                 idDto.RoomTypeId = hotelInfo[1];

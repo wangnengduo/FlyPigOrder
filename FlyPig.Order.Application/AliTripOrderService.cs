@@ -253,10 +253,12 @@ namespace Flypig.Order.Application.Order
         /// <returns></returns>
         public static ProductChannel GetChannelByRPCode(string ratePlanCode)
         {
-            if (ratePlanCode.Contains("mr") || ratePlanCode.Contains("rm"))
+            if (ratePlanCode.Substring(0, 2).Contains("mr") || ratePlanCode.Substring(0, 2).Contains("rm"))
                 return ProductChannel.MT;
-            else if (ratePlanCode.Contains("xr"))
+            else if (ratePlanCode.Substring(0, 2).Contains("xr"))
                 return ProductChannel.Ctrip;
+            else if (ratePlanCode.Substring(0, 2).Contains("dr"))
+                return ProductChannel.DDS;
             else
                 throw new ArgumentException("订单号有问题，不存在此格式订单号");
 
@@ -292,6 +294,8 @@ namespace Flypig.Order.Application.Order
                 return ProductChannel.MT;
             else if (orderId.Contains("xr"))
                 return ProductChannel.Ctrip;
+            else if (orderId.Contains("dr"))
+                return ProductChannel.DDS;
             else
                 throw new ArgumentException("订单号有问题，不存在此格式订单号");
 

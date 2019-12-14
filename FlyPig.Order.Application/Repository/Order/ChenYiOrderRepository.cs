@@ -14,7 +14,7 @@ namespace FlyPig.Order.Application.Repository.Order
 
         public bool UpdateCancelRemark(long taobaoOrderId)
         {
-            string sql = string.Format("update dingdan_info set beizhu=('【XL】:订单申请取消  [{1}]<br/>'+beizhu) where fax='{0}'", taobaoOrderId, DateTime.Now.ToString());
+            string sql = string.Format("update dingdan_info set beizhu=(beizhu + '【AY】:订单申请取消  [{1}]<br/>') where fax='{0}'", taobaoOrderId, DateTime.Now.ToString());
             return SqlSugarContext.TravelskyInstance.Ado.ExecuteCommand(sql) > 0;
         }
 

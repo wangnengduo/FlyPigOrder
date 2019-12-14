@@ -124,8 +124,8 @@ namespace FlyPig.Order.Application.Common.Tmall
                 config.AppName = "贵州任你行酒店专营店";
                 config.AppKey = "25316312";
                 config.AppSecret = "079b3279307304ed39a6d08ae4aebfd0";
-                config.SessionKey = "6100c16ec4ec789fdb1e794319cd736834443d6aa8cb49d2200535632758";
-                config.RefreshToken = "6100c16ec4ec789fdb1e79431106e58634443d6aa8cb49d2200535632758";
+                config.SessionKey = "6100e063fc0b1d1826f1eaccee286b04603a1a1e17e04ed2200535632758";
+                config.RefreshToken = "6102b06162cf2f15ac3690ea3bcf6065f27d0bad4ac1b882200535632758 ";
                 config.ShopType = (int)shopType;
             }
             else

@@ -74,7 +74,7 @@ namespace FlyPig.Order.Application.Order.Notice
 
                 FilterRemark(Request);
                 TmallOrderDto order = ParseOrder(Request);
-                if (Convert.ToInt32(order.hotelID) > 0)
+                if (!string.IsNullOrWhiteSpace(order.hotelID))
                 {
                     string hotelId = order.hotelID;
                     //Task.Factory.StartNew(() =>
@@ -150,8 +150,8 @@ namespace FlyPig.Order.Application.Order.Notice
                             }
                         });
 
-                        //当携程预订满房时保存数据库返回下单成功为客服提醒客户申请退款
-                        if ((int)Channel == 8)
+                        #region 当携程预订满房时保存数据库返回下单成功为客服提醒客户申请退款
+                        if ((int)Channel == 8 || (int)Channel == 10)
                         {
                             
                             string priceStr = string.Empty;
@@ -217,6 +217,7 @@ namespace FlyPig.Order.Application.Order.Notice
                             result.Message = string.Format("满房，不可预定");
                             result.ResultCode = "-101";
                         }
+                        #endregion
                         logWriter.WriteOrder(Request.TaoBaoOrderId.ToString(), "::创建订单失败(满房)-编号:{0},{1},失败原因{2}", hotelId, Request.RatePlanCode, result.Message);
                         return result;
                     }
@@ -288,6 +289,9 @@ namespace FlyPig.Order.Application.Order.Notice
                     order.taobaoTotalPrice = Convert.ToDecimal(Request.TotalPrice) / 100;
                     order.CurrencyCode = simpleOrder.CurrencyCode;
                     order.RatePlanCode = Request.RatePlanCode;
+                    //保存客人预订早餐数
+                    order.userID = Request.DailyInfos[0].BreakFast;
+                    
 
                     if (simpleOrder.CurrencyPrice.HasValue)
                     {
@@ -316,6 +320,39 @@ namespace FlyPig.Order.Application.Order.Notice
                     {
                         order.remark += string.Format("【系统】[注意：入住人-{0}]     <br/>{1}", order.guestName, order.remark);
                         order.guestName = order.guestName.Substring(0, 64);
+                    }
+
+                    //判断大都市早餐数与预订时的早餐数
+                    if ((int)Channel == 10 && !string.IsNullOrEmpty(simpleOrder.PriceStr) && order.userID != 0 && order.userID != simpleOrder.BreakFast && simpleOrder.BreakFast != 99)
+                    {
+                        Task.Factory.StartNew(() =>
+                        {
+                            try
+                            {
+                                //当早餐数不对等时更新rp
+                                string urlUpdateRp = string.Format("http://localhost:9092/ashx/rnxUpdateRaPlan.ashx?type=rp&source=10&hid={0}", order.hotelID);
+                                string getBoby = WebHttpRequest.Get(urlUpdateRp);
+                                if (!getBoby.Contains("更新价格计划成功"))
+                                {
+                                    WebHttpRequest.Get(urlUpdateRp);
+                                }
+                            }
+                            catch
+                            {
+
+                            }
+                        });
+                        if (order.userID > simpleOrder.BreakFast)
+                        {
+                            order.hasChange = 1;
+                            order.sRoomNum = simpleOrder.BreakFast;
+                            //order.remark += string.Format("【系统】:早餐个数不相等，天猫：{1}, 供应商：{2}  [{0}]<br/>", DateTime.Now.ToString(), order.userID, simpleOrder.BreakFast);
+                        }
+                    }
+                    if ((int)Channel == 10 && simpleOrder.BreakFast != 99)
+                    {
+                        //保存大都市产品在预订时供应商的早餐数，为判断早餐数是否对等
+                        order.sRoomNum = simpleOrder.BreakFast;
                     }
 
                     try
@@ -429,7 +466,7 @@ namespace FlyPig.Order.Application.Order.Notice
 
             if (Channel == ProductChannel.Ctrip)
             {
-                if ((payAmount / 100) < (datePrice * roomNum) * 0.95m)
+                if ((payAmount / 100) < (datePrice * roomNum) * 0.94m)
                 {
                     return false;
                 }
@@ -439,7 +476,7 @@ namespace FlyPig.Order.Application.Order.Notice
                 }
             }
 
-            if ((payAmount / 100) < (datePrice * roomNum) * 0.98m)
+            if ((payAmount / 100) < (datePrice * roomNum) * 0.93m)
             {
                 return false;
             }
@@ -535,6 +572,10 @@ namespace FlyPig.Order.Application.Order.Notice
                 {
                     orderPrefix = "er";
                 }
+            }
+            else if (Channel == ProductChannel.DDS)
+            {
+                orderPrefix = "dr";
             }
             else
             {
@@ -673,6 +714,27 @@ namespace FlyPig.Order.Application.Order.Notice
             order.source = "";
             order.Refuse = 0;
             order.sentfaxtime = new DateTime(1900, 1, 1);
+
+            try
+            {
+                if (bookRQ.VoucherInfos != null && bookRQ.VoucherInfos.Count > 0)
+                {
+                    var dayCount = order.checkOutDate.Subtract(order.checkInDate).TotalDays;
+                    var nightDay = Convert.ToInt32(dayCount) * order.roomNum;
+                    var offerPrice = bookRQ.VoucherInfos.FirstOrDefault().VoucherPomotionAmt;
+                    var dayOfferPrice = Convert.ToInt32(offerPrice / nightDay);
+
+                    bookRQ.DailyInfos.ForEach(u =>
+                    {
+                        u.Price = u.Price - dayOfferPrice;
+                    });
+                }
+            }
+            catch
+            {
+
+            }
+
             order.orderType = Convert.ToInt16(Channel.GetDescription());
             order.DailyInfoPrice = JsonConvert.SerializeObject(bookRQ.DailyInfos);
             return order;

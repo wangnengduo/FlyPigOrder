@@ -1,6 +1,7 @@
 ﻿
 using Flypig.Order.Application.Order;
 using FlyPig.Order.Application.Channel.BigTree;
+using FlyPig.Order.Application.Channel.DaDuShi.Order;
 using FlyPig.Order.Application.Entities.Enum;
 using FlyPig.Order.Application.MT.Order;
 using FlyPig.Order.Application.MT.Order.Channel;
@@ -30,6 +31,7 @@ namespace FlyPig.Order.Application.Hotel.Channel
                 case ProductChannel.MT: return new MeiTuanProductChannel(shop, channel);
                 //case ProductChannel.BigTree: return new BigTreeProductChannel(shop);
                 case ProductChannel.Ctrip: return new CtripProductChannel(shop);
+                case ProductChannel.DDS: return new DaDuShiProductChannel(shop, channel);
                 default: throw new ArgumentNullException("channel");
             }
         }
@@ -102,6 +104,8 @@ namespace FlyPig.Order.Application.Hotel.Channel
                     return new CtripTmallOrderChannel(shop);
                 case 16:
                     return new CtripTmallOrderChannel(shop);
+                case 17:
+                    return new DaDuShiOrderChannel(shop);
                 default:
                     throw new ArgumentNullException("orderType");
             }

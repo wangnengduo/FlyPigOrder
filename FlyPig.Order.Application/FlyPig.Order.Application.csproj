@@ -65,9 +65,20 @@
     <Compile Include="Channel\BigTree\BigtreeOrderChannel.cs" />
     <Compile Include="Channel\CtripProductChannel.cs" />
     <Compile Include="Channel\Ctrip\ChenYiCtripOrderChannel.cs" />
+    <Compile Include="Channel\Ctrip\CtBaseResponse.cs" />
+    <Compile Include="Channel\Ctrip\ctripPriceCacheEntity\CtripHotelRoomRateResponse.cs" />
+    <Compile Include="Channel\Ctrip\ctripPriceCacheEntity\CtripStaticRoomRateResponse.cs" />
+    <Compile Include="Channel\Ctrip\CtripRoomsResponse.cs" />
     <Compile Include="Channel\Ctrip\CtripTmallOrderChannel.cs" />
+    <Compile Include="Channel\DaDuShiProductChannel.cs" />
+    <Compile Include="Channel\DaDuShi\Entity\RatePlanConfrimJsonEt.cs" />
+    <Compile Include="Channel\DaDuShi\Order\DaDuShiOrderChannel.cs" />
+    <Compile Include="Channel\DaDuShi\Order\IDaDuShiOrderChannel.cs" />
+    <Compile Include="Channel\DaDuShi\Order\TmallDaDuShiOrderChannel.cs" />
     <Compile Include="Channel\IProductChannel.cs" />
     <Compile Include="Channel\MeiTuanProductChannel.cs" />
+    <Compile Include="Channel\MeiTuan\Entity\mtPriceCacheEntity\CommonRate.cs" />
+    <Compile Include="Channel\MeiTuan\Entity\mtPriceCacheEntity\mtPriceCache.cs" />
     <Compile Include="Channel\ProductChannelFactory.cs" />
     <Compile Include="Common\CacheHelper.cs" />
     <Compile Include="Common\ServiceResult.cs" />
@@ -152,6 +163,10 @@
     <ProjectReference Include="..\Channel\MeiTuan\MeiTuan.csproj">
       <Project>{52748530-2214-4b64-818d-ca080043e878}</Project>
       <Name>MeiTuan</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DaDuShi\DaDuShi.csproj">
+      <Project>{49e5f6e7-8c42-40b5-8d7b-8713a04ae869}</Project>
+      <Name>DaDuShi</Name>
     </ProjectReference>
     <ProjectReference Include="..\FlyPig.Order.Core\FlyPig.Order.Core.csproj">
       <Project>{f8296469-8bf4-4bc4-9e42-3b45a77c21a6}</Project>

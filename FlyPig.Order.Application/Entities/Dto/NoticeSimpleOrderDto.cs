@@ -27,5 +27,9 @@ namespace Flypig.Order.Application.Order.Entities.Dto
         public string LogisticsStatus { get; set; }
 
         public DateTime OrderTime { get; set; }
+
+        public string ContactTel { get; set; }
+
+        public string caozuo { get; set; }
     }
 }

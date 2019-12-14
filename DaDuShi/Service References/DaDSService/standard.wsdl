@@ -1,0 +1,878 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:sch="http://www.toptown.cn/provider/standard" xmlns:tns="http://www.toptown.cn/provider/standard" targetNamespace="http://www.toptown.cn/provider/standard" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema xmlns:dw="http://www.toptown.cn/provider/standard" attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://www.toptown.cn/provider/standard" xmlns:s="http://www.w3.org/2001/XMLSchema">
+      <s:element name="PingRequest">
+        <s:complexType>
+          <s:complexContent mixed="false">
+            <s:extension base="dw:BaseRequest">
+              <s:attribute name="Echo" type="s:string" use="required" />
+            </s:extension>
+          </s:complexContent>
+        </s:complexType>
+      </s:element>
+      <s:element name="SalableHotelRequest">
+        <s:complexType>
+          <s:complexContent mixed="false">
+            <s:extension base="dw:BaseRequest">
+              <s:sequence>
+                <s:element name="SalableHotelCriteria" type="dw:SalableHotelCriteria" />
+              </s:sequence>
+            </s:extension>
+          </s:complexContent>
+        </s:complexType>
+      </s:element>
+      <s:element name="HotelChangeRequest">
+        <s:complexType>
+          <s:complexContent mixed="false">
+            <s:extension base="dw:BaseRequest">
+              <s:sequence>
+                <s:element name="HotelChangeCriteria" type="dw:HotelChangeCriteria" />
+              </s:sequence>
+            </s:extension>
+          </s:complexContent>
+        </s:complexType>
+      </s:element>
+      <s:element name="HotelChangeDetailRequest">
+        <s:complexType>
+          <s:complexContent mixed="false">
+            <s:extension base="dw:BaseRequest">
+              <s:sequence>
+                <s:element name="HotelChangeDetailCriteria" type="dw:HotelChangeDetailCriteria" />
+              </s:sequence>
+            </s:extension>
+          </s:complexContent>
+        </s:complexType>
+      </s:element>
+      <s:element name="AvailabilityRequest">
+        <s:complexType>
+          <s:complexContent mixed="false">
+            <s:extension base="dw:BaseRequest">
+              <s:sequence>
+                <s:element name="AvailabilityCriteria" type="dw:AvailabilityCriteria" />
+              </s:sequence>
+            </s:extension>
+          </s:complexContent>
+        </s:complexType>
+      </s:element>
+      <s:element name="RateChangeRequest">
+        <s:complexType>
+          <s:complexContent mixed="false">
+            <s:extension base="dw:BaseRequest">
+              <s:sequence>
+                <s:element name="ChangeRateCriteria" type="dw:ChangeRateCriteria" />
+              </s:sequence>
+            </s:extension>
+          </s:complexContent>
+        </s:complexType>
+      </s:element>
+      <s:element name="ReservationRequest">
+        <s:complexType>
+          <s:complexContent mixed="false">
+            <s:extension base="dw:BaseRequest">
+              <s:sequence>
+                <s:element name="Reservation" type="dw:Reservation" />
+              </s:sequence>
+            </s:extension>
+          </s:complexContent>
+        </s:complexType>
+      </s:element>
+      <s:element name="CancelRequest">
+        <s:complexType>
+          <s:complexContent mixed="false">
+            <s:extension base="dw:BaseRequest">
+              <s:sequence>
+                <s:element minOccurs="0" name="ReservationId" type="dw:ReservationId" />
+              </s:sequence>
+            </s:extension>
+          </s:complexContent>
+        </s:complexType>
+      </s:element>
+      <s:element name="HotelBasicInfoRequest">
+        <s:complexType>
+          <s:complexContent mixed="false">
+            <s:extension base="dw:BaseRequest">
+              <s:sequence>
+                <s:element minOccurs="0" name="HotelBasicInfoCriteria" type="dw:HotelBasicInfoCriteria" />
+              </s:sequence>
+            </s:extension>
+          </s:complexContent>
+        </s:complexType>
+      </s:element>
+      <s:element name="OrderQueryRequest">
+        <s:complexType>
+          <s:complexContent mixed="false">
+            <s:extension base="dw:BaseRequest">
+              <s:attribute name="ReservationId" type="s:string" use="required" />
+            </s:extension>
+          </s:complexContent>
+        </s:complexType>
+      </s:element>
+      <s:element name="PaymentRequest">
+        <s:complexType>
+          <s:complexContent mixed="false">
+            <s:extension base="dw:BaseRequest">
+              <s:attribute name="ProductResId" type="s:string" use="required" />
+              <s:attribute name="Amount" type="s:decimal" use="required" />
+            </s:extension>
+          </s:complexContent>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="StayDateRange">
+        <s:attribute name="CheckIn" type="s:string" use="required" />
+        <s:attribute name="CheckOut" type="s:string" use="required" />
+      </s:complexType>
+      <s:complexType name="DateRange">
+        <s:attribute name="startDate" type="s:string" use="required" />
+        <s:attribute name="endDate" type="s:string" use="required" />
+      </s:complexType>
+      <s:complexType name="GuestCount">
+        <s:attribute name="AdultCount" type="s:int" use="required" />
+        <s:attribute name="ChildCount" type="s:int" use="optional" />
+      </s:complexType>
+      <s:complexType name="Customer">
+        <s:attribute name="GivenName" type="s:string" use="required" />
+        <s:attribute name="Surname" type="s:string" use="required" />
+        <s:attribute name="Telephone" type="s:string" use="optional" />
+        <s:attribute name="Email" type="s:string" use="optional" />
+        <s:attribute name="Address" type="s:string" use="optional" />
+      </s:complexType>
+      <s:complexType name="Total">
+        <s:attribute name="DiscountAmount" type="s:decimal" use="optional" />
+        <s:attribute name="TotalAmount" type="s:decimal" use="required" />
+      </s:complexType>
+      <s:complexType name="Reservation">
+        <s:sequence>
+          <s:element minOccurs="0" name="ReservationStatus" type="dw:ReservationStatus" />
+          <s:element minOccurs="0" name="Total" type="dw:Total" />
+          <s:element minOccurs="0" name="StayDateRange" type="dw:StayDateRange" />
+          <s:element minOccurs="0" name="ContactPerson" type="dw:Customer" />
+          <s:element minOccurs="0" name="LastModifyDateTime" type="s:string" />
+          <s:element minOccurs="0" name="settlementStatus" type="s:string" />
+          <s:element minOccurs="0" name="operatorId" type="s:string" />
+          <s:element minOccurs="0" name="confirmNO" type="s:string" />
+          <s:element name="Guests">
+            <s:complexType>
+              <s:sequence>
+                <s:element maxOccurs="unbounded" name="Guest">
+                  <s:complexType>
+                    <s:attribute name="GivenName" use="optional" />
+                    <s:attribute name="Surname" use="optional" />
+                    <s:attribute name="Telephone" use="optional" />
+                    <s:attribute name="Email" use="optional" />
+                  </s:complexType>
+                </s:element>
+              </s:sequence>
+            </s:complexType>
+          </s:element>
+          <s:element minOccurs="0" name="ServiceItems">
+            <s:complexType>
+              <s:sequence>
+                <s:element minOccurs="0" name="ServiceItem">
+                  <s:complexType>
+                    <s:sequence>
+                      <s:element minOccurs="0" name="DateRange" type="dw:DateRange" />
+                    </s:sequence>
+                    <s:attribute name="ItemName" />
+                    <s:attribute name="code" type="s:string" />
+                    <s:attribute name="count" type="s:int" />
+                    <s:attribute name="Amount" type="s:decimal" />
+                    <s:attribute name="service" type="s:boolean" />
+                    <s:attribute name="breakfast" type="s:int" />
+                  </s:complexType>
+                </s:element>
+              </s:sequence>
+            </s:complexType>
+          </s:element>
+          <s:element minOccurs="0" name="Comments">
+            <s:complexType>
+              <s:sequence>
+                <s:element maxOccurs="unbounded" name="Comment" type="s:string" />
+              </s:sequence>
+            </s:complexType>
+          </s:element>
+          <s:element minOccurs="0" name="GuestCount" type="dw:GuestCount" />
+        </s:sequence>
+        <s:attribute name="DistributorReservationId" type="s:string" use="required" />
+        <s:attribute name="RatePlanCode" type="s:string" use="optional" />
+        <s:attribute name="RoomTypeCode" type="s:string" use="optional" />
+        <s:attribute name="NumberOfUnits" type="s:int" use="required" />
+        <s:attribute name="HotelCode" type="s:string" use="optional" />
+      </s:complexType>
+      <s:complexType name="ReservationId">
+        <s:attribute name="ProductReservationId" type="s:string" use="optional" />
+        <s:attribute name="ErpReservationId" type="s:string" use="optional" />
+        <s:attribute name="HotelReservationId" type="s:string" use="optional" />
+      </s:complexType>
+      <s:simpleType name="ReservationStatus">
+        <s:restriction base="s:string">
+          <s:enumeration value="Pending" />
+          <s:enumeration value="Confirmed" />
+          <s:enumeration value="Canceled" />
+          <s:enumeration value="Failed" />
+        </s:restriction>
+      </s:simpleType>
+      <s:complexType name="RoomType">
+        <s:attribute name="RoomTypeCode" type="s:string" />
+        <s:attribute name="RoomTypeName" type="s:string" use="optional" />
+      </s:complexType>
+      <s:complexType name="SalableHotel">
+        <s:sequence>
+          <s:element name="SalableHotels">
+            <s:complexType>
+              <s:sequence>
+                <s:element minOccurs="0" maxOccurs="unbounded" name="HotelSalable" type="dw:HotelSalable" />
+              </s:sequence>
+            </s:complexType>
+          </s:element>
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="HotelChange">
+        <s:sequence>
+          <s:element name="HotelChanges">
+            <s:complexType>
+              <s:sequence>
+                <s:element minOccurs="0" maxOccurs="unbounded" name="ChangeHotel" type="dw:ChangeHotel" />
+              </s:sequence>
+            </s:complexType>
+          </s:element>
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="HotelChangeDetail">
+        <s:sequence>
+          <s:element name="HotelChangeDetails">
+            <s:complexType>
+              <s:sequence>
+                <s:element minOccurs="0" maxOccurs="unbounded" name="ChangeHotelDetail" type="dw:ChangeHotelDetail" />
+              </s:sequence>
+            </s:complexType>
+          </s:element>
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="ChangeHotelDetail">
+        <s:sequence>
+          <s:element name="ChangeDetails">
+            <s:complexType>
+              <s:sequence>
+                <s:element minOccurs="0" maxOccurs="unbounded" name="ChangeDetail" type="dw:ChangeDetail" />
+              </s:sequence>
+            </s:complexType>
+          </s:element>
+        </s:sequence>
+        <s:attribute name="HotelCode" type="s:string" use="optional" />
+      </s:complexType>
+      <s:complexType name="ChangeDetail">
+        <s:attribute name="RatePlanCode" type="s:string" use="optional" />
+        <s:attribute name="RoomTypeCode" type="s:string" use="optional" />
+        <s:attribute name="Stauts" type="s:string" use="optional" />
+      </s:complexType>
+      <s:complexType name="HotelSalable">
+        <s:attribute name="HotelCode" />
+        <s:attribute name="HotelName" />
+      </s:complexType>
+      <s:complexType name="ChangeHotel">
+        <s:attribute name="HotelCode" />
+      </s:complexType>
+      <s:complexType name="Availability">
+        <s:sequence>
+          <s:element name="RoomTypes">
+            <s:complexType>
+              <s:sequence>
+                <s:element minOccurs="0" maxOccurs="unbounded" name="RoomType" type="dw:RoomType" />
+              </s:sequence>
+            </s:complexType>
+          </s:element>
+          <s:element name="RatePlans">
+            <s:complexType>
+              <s:sequence>
+                <s:element minOccurs="0" maxOccurs="unbounded" name="RatePlan" type="dw:RatePlan" />
+              </s:sequence>
+            </s:complexType>
+          </s:element>
+          <s:element name="RoomRates">
+            <s:complexType>
+              <s:sequence>
+                <s:element minOccurs="0" maxOccurs="unbounded" name="RoomRate" type="dw:RoomRate" />
+              </s:sequence>
+            </s:complexType>
+          </s:element>
+        </s:sequence>
+        <s:attribute name="HotelCode" type="s:string" use="required" />
+        <s:attribute name="StopCancelHour" type="s:int" use="optional" />
+        <s:attribute name="CancelPolicy" type="s:string" use="optional" />
+        <s:attribute name="NotUpdateable" type="s:string" use="optional" />
+      </s:complexType>
+      <s:complexType name="RateChange">
+        <s:sequence>
+          <s:element name="RoomRates">
+            <s:complexType>
+              <s:sequence>
+                <s:element minOccurs="0" maxOccurs="unbounded" name="RoomRate" type="dw:RoomRate" />
+              </s:sequence>
+            </s:complexType>
+          </s:element>
+        </s:sequence>
+        <s:attribute name="HotelCode" type="s:string" use="required" />
+        <s:attribute name="Timestamp" type="s:string" use="required" />
+        <s:attribute name="LastOrderTime" type="s:string" use="optional" />
+        <s:attribute name="StopCancelHours" type="s:int" use="optional" />
+        <s:attribute name="CancelPolicy" type="s:string" use="optional" />
+        <s:attribute name="Inform" type="s:string" use="optional" />
+      </s:complexType>
+      <s:complexType name="RatePlan">
+        <s:sequence>
+          <s:element minOccurs="0" name="RatePlanDescription" type="s:string" />
+          <s:element minOccurs="0" name="CancelPolicy" type="s:string" />
+        </s:sequence>
+        <s:attribute name="RatePlanCode" type="s:string" use="required" />
+        <s:attribute name="RatePlanName" type="s:string" use="optional" />
+      </s:complexType>
+      <s:complexType name="RoomRate">
+        <s:sequence>
+          <s:element name="Rates">
+            <s:complexType>
+              <s:sequence>
+                <s:element minOccurs="0" maxOccurs="unbounded" name="Rate" type="dw:Rate" />
+              </s:sequence>
+            </s:complexType>
+          </s:element>
+        </s:sequence>
+        <s:attribute name="RoomTypeCode" type="s:string" use="required" />
+        <s:attribute name="RoomTypeName" type="s:string" use="optional" />
+        <s:attribute name="RatePlanCode" type="s:string" use="required" />
+        <s:attribute name="CurrencyCode" type="s:string" use="required" />
+        <s:attribute name="PaymentType" type="s:string" use="required" />
+        <s:attribute default="0" name="LastDays" type="s:int" use="optional" />
+        <s:attribute default="0" name="AdvanceDays" type="s:int" use="optional" />
+        <s:attribute default="0" name="AdvanceHours" type="s:int" use="optional" />
+        <s:attribute name="PaymentPolicies" type="s:string" use="optional" />
+        <s:attribute name="RatePlanName" type="s:string" use="optional" />
+        <s:attribute name="StopCancelDate" type="s:dateTime" use="optional" />
+        <s:attribute name="RateCancelPolicy" type="s:string" use="optional" />
+        <s:attribute name="RateNotUpdateable" type="s:string" use="optional" />
+        <s:attribute name="RTBreakfast" type="s:int" use="optional" />
+        <s:attribute name="BedTypeName" type="s:string" use="optional" />
+        <s:attribute name="RTStopCancelTime" type="s:int" use="optional" />
+        <s:attribute name="RoomTypeUseBeforeTime" type="s:string" use="optional" />
+      </s:complexType>
+      <s:complexType name="Rate">
+        <s:attribute name="EffectiveDate" type="s:string" use="required" />
+        <s:attribute name="ExpireDate" type="s:string" use="required" />
+        <s:attribute name="AmountBeforeTax" type="s:decimal" use="optional" />
+        <s:attribute name="AmountAfterTax" type="s:decimal" use="optional" />
+        <s:attribute name="Breakfast" type="s:int" use="optional" />
+        <s:attribute name="Adult" type="s:int" use="optional" />
+        <s:attribute name="Child" type="s:int" use="optional" />
+        <s:attribute name="Ability" type="s:int" use="optional" />
+        <s:attribute name="Los" type="s:int" use="optional" />
+      </s:complexType>
+      <s:complexType name="RoomTypeInfo">
+        <s:attribute name="RoomTypeName" type="s:string" use="required" />
+        <s:attribute name="RoomTypeCode" type="s:string" use="required" />
+        <s:attribute name="Internet" type="s:string" use="optional" />
+        <s:attribute name="MaxAddBed" type="s:int" use="optional" />
+        <s:attribute name="BreakfastInfo" type="s:string" use="optional" />
+        <s:attribute name="RoomFacility" type="s:string" use="optional" />
+        <s:attribute name="GiftDesc" type="s:string" use="optional" />
+        <s:attribute name="BedTypeName" type="s:string" use="optional" />
+      </s:complexType>
+      <s:complexType name="ChangeRateDetails">
+        <s:sequence>
+          <s:element maxOccurs="unbounded" name="ChangeRateDetail" type="dw:ChangeRateDetail" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="ChangeRateDetail">
+        <s:attribute name="RatePlanCode" type="s:string" use="optional" />
+        <s:attribute name="RoomTypeCode" type="s:string" use="optional" />
+      </s:complexType>
+      <s:complexType name="HotelBasicInfo">
+        <s:sequence>
+          <s:element name="HotelBasicInfos">
+            <s:complexType>
+              <s:sequence>
+                <s:element minOccurs="0" maxOccurs="unbounded" name="HotelInfo" type="dw:HotelInfo" />
+              </s:sequence>
+            </s:complexType>
+          </s:element>
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="HotelInfo">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="PictureUris" type="s:string" />
+          <s:element name="RoomTypeInfos">
+            <s:complexType>
+              <s:sequence>
+                <s:element minOccurs="0" maxOccurs="unbounded" name="RoomTypeInfo" type="dw:RoomTypeInfo" />
+              </s:sequence>
+            </s:complexType>
+          </s:element>
+        </s:sequence>
+        <s:attribute name="HotelCode" type="s:string" use="required" />
+        <s:attribute name="HotelName" type="s:string" use="required" />
+        <s:attribute name="HotelName_EN" type="s:string" use="optional" />
+        <s:attribute name="Address_CH" type="s:string" use="optional" />
+        <s:attribute name="Address_EN" type="s:string" use="optional" />
+        <s:attribute name="Phone" type="s:string" use="optional" />
+        <s:attribute name="Fax" type="s:string" use="optional" />
+        <s:attribute name="StarLevel" type="s:string" use="optional" />
+        <s:attribute name="Brand" type="s:string" use="optional" />
+        <s:attribute name="Commercial" type="s:string" use="optional" />
+        <s:attribute name="City" type="s:string" use="optional" />
+        <s:attribute name="HasPrice" type="s:int" use="optional" />
+        <s:attribute name="Inform" type="s:string" use="optional" />
+        <s:attribute name="CityCode" type="s:string" use="optional" />
+        <s:attribute name="ProvinceCode" type="s:string" use="optional" />
+        <s:attribute name="HsienCode" type="s:string" use="optional" />
+        <s:attribute name="HsienName" type="s:string" use="optional" />
+        <s:attribute name="Province" type="s:string" use="optional" />
+        <s:attribute name="SupplierConn" type="s:string" use="optional" />
+        <s:attribute name="EvenLive" type="s:string" use="optional" />
+        <s:attribute name="Oversea" type="s:int" use="optional" />
+        <s:attribute name="Latitude" type="s:string" use="optional" />
+        <s:attribute name="Longitude" type="s:string" use="optional" />
+      </s:complexType>
+      <s:complexType name="HotelQuery">
+        <s:sequence>
+          <s:element maxOccurs="unbounded" name="HotelCodeOrName" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:simpleType name="HotelQueryType">
+        <s:restriction base="s:string">
+          <s:enumeration value="HotelName" />
+          <s:enumeration value="HotelCode" />
+        </s:restriction>
+      </s:simpleType>
+      <s:complexType name="OrderQueryInfo">
+        <s:sequence>
+          <s:element name="OrderInfos">
+            <s:complexType>
+              <s:sequence>
+                <s:element minOccurs="0" maxOccurs="unbounded" name="OrderInfo" type="dw:OrderInfo" />
+              </s:sequence>
+            </s:complexType>
+          </s:element>
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="OrderInfo">
+        <s:attribute name="ProductReservationId" type="s:string" use="required" />
+        <s:attribute name="ERPReservationId" type="s:string" use="optional" />
+        <s:attribute name="ConfirmNo" type="s:string" use="optional" />
+        <s:attribute name="ReservationStatus" type="s:string" use="required" />
+        <s:attribute name="TotalAmount" type="s:decimal" use="required" />
+      </s:complexType>
+      <s:complexType name="BaseRequest" abstract="true">
+        <s:attribute name="Token" type="s:string" use="required" />
+        <s:attribute name="UserName" type="s:string" use="required" />
+        <s:attribute name="Password" type="s:string" use="required" />
+      </s:complexType>
+      <s:complexType name="SalableHotelCriteria">
+        <s:sequence>
+          <s:element name="DateRange" type="dw:DateRange" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="HotelChangeCriteria">
+        <s:sequence>
+          <s:element name="DateRange" type="dw:DateRange" />
+        </s:sequence>
+        <s:attribute name="HotelCode" type="s:string" />
+        <s:attribute name="Timestamp" type="s:string" />
+      </s:complexType>
+      <s:complexType name="HotelChangeDetailCriteria">
+        <s:sequence>
+          <s:element name="DateRange" type="dw:DateRange" />
+        </s:sequence>
+        <s:attribute name="Timestamp" type="s:string" />
+      </s:complexType>
+      <s:complexType name="AvailabilityCriteria">
+        <s:sequence>
+          <s:element name="StayDateRange" type="dw:StayDateRange" />
+          <s:element name="GuestCount" type="dw:GuestCount" />
+        </s:sequence>
+        <s:attribute name="NumberOfUnits" type="s:int" use="required" />
+        <s:attribute name="HotelCode" type="s:string" use="required" />
+        <s:attribute name="RatePlanCode" type="s:string" />
+        <s:attribute name="RoomTypeCode" type="s:string" />
+      </s:complexType>
+      <s:complexType name="ChangeRateCriteria">
+        <s:sequence>
+          <s:element name="DateRange" type="dw:DateRange" />
+          <s:element minOccurs="0" name="ChangeRateDetails" type="dw:ChangeRateDetails" />
+        </s:sequence>
+        <s:attribute name="HotelCode" type="s:string" use="required" />
+        <s:attribute name="Los" type="s:string" />
+        <s:attribute name="Timestamp" type="s:string" />
+      </s:complexType>
+      <s:complexType name="HotelBasicInfoCriteria">
+        <s:sequence>
+          <s:element name="HotelQueryType" type="dw:HotelQueryType" />
+          <s:element name="HotelQuery" type="dw:HotelQuery" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="PingResponse">
+        <s:complexType>
+          <s:complexContent mixed="false">
+            <s:extension base="dw:StatusResponse">
+              <s:attribute name="Echo" type="s:string" use="required" />
+            </s:extension>
+          </s:complexContent>
+        </s:complexType>
+      </s:element>
+      <s:element name="SalableHotelResponse">
+        <s:complexType>
+          <s:complexContent mixed="false">
+            <s:extension base="dw:StatusResponse">
+              <s:sequence>
+                <s:element minOccurs="0" name="SalableHotel" type="dw:SalableHotel" />
+              </s:sequence>
+            </s:extension>
+          </s:complexContent>
+        </s:complexType>
+      </s:element>
+      <s:element name="HotelChangeResponse">
+        <s:complexType>
+          <s:complexContent mixed="false">
+            <s:extension base="dw:BaseResponse">
+              <s:sequence>
+                <s:element minOccurs="0" name="HotelChange" type="dw:HotelChange" />
+              </s:sequence>
+            </s:extension>
+          </s:complexContent>
+        </s:complexType>
+      </s:element>
+      <s:element name="HotelChangeDetailResponse">
+        <s:complexType>
+          <s:complexContent mixed="false">
+            <s:extension base="dw:BaseResponse">
+              <s:sequence>
+                <s:element minOccurs="0" name="HotelChangeDetail" type="dw:HotelChangeDetail" />
+              </s:sequence>
+            </s:extension>
+          </s:complexContent>
+        </s:complexType>
+      </s:element>
+      <s:element name="AvailabilityResponse">
+        <s:complexType>
+          <s:complexContent mixed="false">
+            <s:extension base="dw:StatusResponse">
+              <s:sequence>
+                <s:element minOccurs="0" name="Availability" type="dw:Availability" />
+              </s:sequence>
+            </s:extension>
+          </s:complexContent>
+        </s:complexType>
+      </s:element>
+      <s:element name="RateChangeResponse">
+        <s:complexType>
+          <s:complexContent mixed="false">
+            <s:extension base="dw:StatusResponse">
+              <s:sequence>
+                <s:element minOccurs="0" name="RateChange" type="dw:RateChange" />
+              </s:sequence>
+            </s:extension>
+          </s:complexContent>
+        </s:complexType>
+      </s:element>
+      <s:element name="ReservationResponse">
+        <s:complexType>
+          <s:complexContent mixed="false">
+            <s:extension base="dw:StatusResponse">
+              <s:sequence>
+                <s:element minOccurs="0" name="ReservationId" type="dw:ReservationId" />
+                <s:element minOccurs="0" name="ReservationStatus" type="dw:ReservationStatus" />
+                <s:element minOccurs="0" name="Total" type="dw:Total" />
+                <s:element minOccurs="0" name="Comment" type="s:string" />
+                <s:element minOccurs="0" name="CancelTime" type="s:string" />
+              </s:sequence>
+            </s:extension>
+          </s:complexContent>
+        </s:complexType>
+      </s:element>
+      <s:element name="CancelResponse">
+        <s:complexType>
+          <s:complexContent mixed="false">
+            <s:extension base="dw:StatusResponse">
+              <s:attribute name="HotelCancelConfirmId" type="s:string" use="optional" />
+            </s:extension>
+          </s:complexContent>
+        </s:complexType>
+      </s:element>
+      <s:element name="HotelBasicInfoResponse">
+        <s:complexType>
+          <s:complexContent mixed="false">
+            <s:extension base="dw:BaseResponse">
+              <s:sequence>
+                <s:element minOccurs="0" name="HotelBasicInfo" type="dw:HotelBasicInfo" />
+              </s:sequence>
+            </s:extension>
+          </s:complexContent>
+        </s:complexType>
+      </s:element>
+      <s:element name="OrderQueryResponse">
+        <s:complexType>
+          <s:complexContent mixed="false">
+            <s:extension base="dw:StatusResponse">
+              <s:sequence>
+                <s:element minOccurs="0" name="OrderQueryInfo" type="dw:OrderQueryInfo" />
+              </s:sequence>
+            </s:extension>
+          </s:complexContent>
+        </s:complexType>
+      </s:element>
+      <s:element name="PaymentResponse">
+        <s:complexType>
+          <s:complexContent mixed="false">
+            <s:extension base="dw:BaseResponse">
+              <s:sequence>
+                <s:element minOccurs="0" name="ProductResId" type="s:string" />
+                <s:element name="PaymentStatus" type="s:string" />
+                <s:element minOccurs="0" name="ReservationStatus" type="s:string" />
+                <s:element minOccurs="0" name="PaymentMessage" type="s:string" />
+              </s:sequence>
+            </s:extension>
+          </s:complexContent>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="Error">
+        <s:attribute name="Code" type="s:string" use="required" />
+        <s:attribute name="Message" type="s:string" use="required" />
+      </s:complexType>
+      <s:simpleType name="Status">
+        <s:restriction base="s:string">
+          <s:enumeration value="Successful" />
+          <s:enumeration value="Failed" />
+        </s:restriction>
+      </s:simpleType>
+      <s:complexType name="BaseResponse" abstract="true">
+        <s:sequence>
+          <s:element minOccurs="0" name="Error" type="dw:Error" />
+        </s:sequence>
+        <s:attribute name="Token" type="s:string" use="required" />
+        <s:attribute name="Status" type="dw:Status" use="required" />
+      </s:complexType>
+      <s:complexType name="StatusResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="dw:BaseResponse" />
+        </s:complexContent>
+      </s:complexType>
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="AvailabilityResponse">
+    <wsdl:part name="AvailabilityResponse" element="tns:AvailabilityResponse" />
+  </wsdl:message>
+  <wsdl:message name="RateChangeResponse">
+    <wsdl:part name="RateChangeResponse" element="tns:RateChangeResponse" />
+  </wsdl:message>
+  <wsdl:message name="PingResponse">
+    <wsdl:part name="PingResponse" element="tns:PingResponse" />
+  </wsdl:message>
+  <wsdl:message name="OrderQueryResponse">
+    <wsdl:part name="OrderQueryResponse" element="tns:OrderQueryResponse" />
+  </wsdl:message>
+  <wsdl:message name="PaymentResponse">
+    <wsdl:part name="PaymentResponse" element="tns:PaymentResponse" />
+  </wsdl:message>
+  <wsdl:message name="PingRequest">
+    <wsdl:part name="PingRequest" element="tns:PingRequest" />
+  </wsdl:message>
+  <wsdl:message name="ReservationResponse">
+    <wsdl:part name="ReservationResponse" element="tns:ReservationResponse" />
+  </wsdl:message>
+  <wsdl:message name="ReservationRequest">
+    <wsdl:part name="ReservationRequest" element="tns:ReservationRequest" />
+  </wsdl:message>
+  <wsdl:message name="HotelBasicInfoRequest">
+    <wsdl:part name="HotelBasicInfoRequest" element="tns:HotelBasicInfoRequest" />
+  </wsdl:message>
+  <wsdl:message name="OrderQueryRequest">
+    <wsdl:part name="OrderQueryRequest" element="tns:OrderQueryRequest" />
+  </wsdl:message>
+  <wsdl:message name="CancelRequest">
+    <wsdl:part name="CancelRequest" element="tns:CancelRequest" />
+  </wsdl:message>
+  <wsdl:message name="HotelChangeDetailResponse">
+    <wsdl:part name="HotelChangeDetailResponse" element="tns:HotelChangeDetailResponse" />
+  </wsdl:message>
+  <wsdl:message name="CancelResponse">
+    <wsdl:part name="CancelResponse" element="tns:CancelResponse" />
+  </wsdl:message>
+  <wsdl:message name="SalableHotelResponse">
+    <wsdl:part name="SalableHotelResponse" element="tns:SalableHotelResponse" />
+  </wsdl:message>
+  <wsdl:message name="HotelChangeResponse">
+    <wsdl:part name="HotelChangeResponse" element="tns:HotelChangeResponse" />
+  </wsdl:message>
+  <wsdl:message name="AvailabilityRequest">
+    <wsdl:part name="AvailabilityRequest" element="tns:AvailabilityRequest" />
+  </wsdl:message>
+  <wsdl:message name="HotelBasicInfoResponse">
+    <wsdl:part name="HotelBasicInfoResponse" element="tns:HotelBasicInfoResponse" />
+  </wsdl:message>
+  <wsdl:message name="SalableHotelRequest">
+    <wsdl:part name="SalableHotelRequest" element="tns:SalableHotelRequest" />
+  </wsdl:message>
+  <wsdl:message name="HotelChangeDetailRequest">
+    <wsdl:part name="HotelChangeDetailRequest" element="tns:HotelChangeDetailRequest" />
+  </wsdl:message>
+  <wsdl:message name="RateChangeRequest">
+    <wsdl:part name="RateChangeRequest" element="tns:RateChangeRequest" />
+  </wsdl:message>
+  <wsdl:message name="PaymentRequest">
+    <wsdl:part name="PaymentRequest" element="tns:PaymentRequest" />
+  </wsdl:message>
+  <wsdl:message name="HotelChangeRequest">
+    <wsdl:part name="HotelChangeRequest" element="tns:HotelChangeRequest" />
+  </wsdl:message>
+  <wsdl:portType name="Standard">
+    <wsdl:operation name="Availability">
+      <wsdl:input name="AvailabilityRequest" message="tns:AvailabilityRequest" />
+      <wsdl:output name="AvailabilityResponse" message="tns:AvailabilityResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="RateChange">
+      <wsdl:input name="RateChangeRequest" message="tns:RateChangeRequest" />
+      <wsdl:output name="RateChangeResponse" message="tns:RateChangeResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="Ping">
+      <wsdl:input name="PingRequest" message="tns:PingRequest" />
+      <wsdl:output name="PingResponse" message="tns:PingResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="OrderQuery">
+      <wsdl:input name="OrderQueryRequest" message="tns:OrderQueryRequest" />
+      <wsdl:output name="OrderQueryResponse" message="tns:OrderQueryResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="Payment">
+      <wsdl:input name="PaymentRequest" message="tns:PaymentRequest" />
+      <wsdl:output name="PaymentResponse" message="tns:PaymentResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="Reservation">
+      <wsdl:input name="ReservationRequest" message="tns:ReservationRequest" />
+      <wsdl:output name="ReservationResponse" message="tns:ReservationResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="HotelBasicInfo">
+      <wsdl:input name="HotelBasicInfoRequest" message="tns:HotelBasicInfoRequest" />
+      <wsdl:output name="HotelBasicInfoResponse" message="tns:HotelBasicInfoResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="Cancel">
+      <wsdl:input name="CancelRequest" message="tns:CancelRequest" />
+      <wsdl:output name="CancelResponse" message="tns:CancelResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="HotelChangeDetail">
+      <wsdl:input name="HotelChangeDetailRequest" message="tns:HotelChangeDetailRequest" />
+      <wsdl:output name="HotelChangeDetailResponse" message="tns:HotelChangeDetailResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="SalableHotel">
+      <wsdl:input name="SalableHotelRequest" message="tns:SalableHotelRequest" />
+      <wsdl:output name="SalableHotelResponse" message="tns:SalableHotelResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="HotelChange">
+      <wsdl:input name="HotelChangeRequest" message="tns:HotelChangeRequest" />
+      <wsdl:output name="HotelChangeResponse" message="tns:HotelChangeResponse" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="StandardSoap11" type="tns:Standard">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="Availability">
+      <soap:operation soapAction="" />
+      <wsdl:input name="AvailabilityRequest">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="AvailabilityResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RateChange">
+      <soap:operation soapAction="" />
+      <wsdl:input name="RateChangeRequest">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="RateChangeResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Ping">
+      <soap:operation soapAction="" />
+      <wsdl:input name="PingRequest">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="PingResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="OrderQuery">
+      <soap:operation soapAction="" />
+      <wsdl:input name="OrderQueryRequest">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="OrderQueryResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Payment">
+      <soap:operation soapAction="" />
+      <wsdl:input name="PaymentRequest">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="PaymentResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Reservation">
+      <soap:operation soapAction="" />
+      <wsdl:input name="ReservationRequest">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="ReservationResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="HotelBasicInfo">
+      <soap:operation soapAction="" />
+      <wsdl:input name="HotelBasicInfoRequest">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="HotelBasicInfoResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="Cancel">
+      <soap:operation soapAction="" />
+      <wsdl:input name="CancelRequest">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="CancelResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="HotelChangeDetail">
+      <soap:operation soapAction="" />
+      <wsdl:input name="HotelChangeDetailRequest">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="HotelChangeDetailResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="SalableHotel">
+      <soap:operation soapAction="" />
+      <wsdl:input name="SalableHotelRequest">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="SalableHotelResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="HotelChange">
+      <soap:operation soapAction="" />
+      <wsdl:input name="HotelChangeRequest">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="HotelChangeResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="StandardProviderService">
+    <wsdl:port name="StandardSoap11" binding="tns:StandardSoap11">
+      <soap:address location="http://api.toptown.cn/stand/soap/standard/" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

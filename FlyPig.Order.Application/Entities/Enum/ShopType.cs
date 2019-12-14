@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace FlyPig.Order.Application.Entities.Enum
 {
+    /// <summary>
+    /// 飞猪店铺
+    /// </summary>
     public enum ShopType
     {
         /// <summary>

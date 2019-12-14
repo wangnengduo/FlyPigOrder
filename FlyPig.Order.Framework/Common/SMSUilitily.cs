@@ -43,13 +43,13 @@ namespace FlyPig.Order.Framework.Common
         /// <param name="phone"></param>
         /// <param name="content"></param>
         /// <returns></returns>
-        public static string SendShengLv(string phone, string content)
+        public static string SendShengLv(string phone, string content,int ext)
         {
             string result = string.Empty;
             try
             {
                 string pwd = string.Concat(SN, Password).GetMD5().ToUpper();
-                string url = string.Format("{0}/mdsmssend?sn={1}&pwd={2}&mobile={3}&content={4}&ext=&stime=&rrid=&msgfmt=", Url, SN, pwd, phone, content);
+                string url = string.Format("{0}/mdsmssend?sn={1}&pwd={2}&mobile={3}&content={4}&ext={5}&stime=&rrid=&msgfmt=", Url, SN, pwd, phone, content, ext);
                 result = WebHttpRequest.Get(url);
                 return result;
             }

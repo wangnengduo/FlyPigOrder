@@ -12,7 +12,7 @@ namespace FlyPig.Order.Core
         public const string LingZhong = "server =47.104.68.230; Initial Catalog=LingZhong; Persist Security Info=True; User ID = webmaster2019; Password =suT#L?9f%jKyn;";
         public const string GuoLv = "server =47.104.68.230; Initial Catalog=YinJiGuoLv; Persist Security Info=True; User ID = webmaster2019; Password =suT#L?9f%jKyn;";
         public const string ShengLv = "server =47.104.68.230; Initial Catalog=ShengLv; Persist Security Info=True; User ID = webmaster2019; Password =suT#L?9f%jKyn;";
-        public const string Resellbase = "server =.; Initial Catalog=resellbase; Persist Security Info=True; User ID = webmaster_v2020; Password =K*Fv_$km9wNsjudt;";
+        public const string Resellbase = "server =47.96.68.32; Initial Catalog=resellbase; Persist Security Info=True; User ID = webmaster_v2020; Password =K*Fv_$km9wNsjudt;";
         public const string YinJi = "server =47.106.239.82; Initial Catalog=YinJi; Persist Security Info=True; User ID = webmaster_m2021; Password =Y7*RbNr9@L3pVf?Wk7x; ";
         public const string RenXing = "server =47.106.239.82; Initial Catalog=RenXing; Persist Security Info=True; User ID = webmaster_m2021; Password =Y7*RbNr9@L3pVf?Wk7x;";
         public const string RenNiXing = "server =47.106.239.82; Initial Catalog=RenNiXing; Persist Security Info=True; User ID = webmaster_m2021; Password =Y7*RbNr9@L3pVf?Wk7x; ";
@@ -20,6 +20,8 @@ namespace FlyPig.Order.Core
         public const string Channel = "server =47.104.68.230; Initial Catalog=HotelFactory; Persist Security Info=True; User ID = webmaster2019; Password =suT#L?9f%jKyn;Max Pool Size=40000;Min Pool Size=0;Connection Lifetime=900;";
         public const string CtripHotel = "server =120.77.238.99; Initial Catalog=CtripHotels; Persist Security Info=True; User ID = webmaster2017; Password =9fmj?#!utxjfs;";
         public const string HotelProduct = "server =120.77.238.99; Initial Catalog=HotelProduct; Persist Security Info=True; User ID = webmaster2017; Password =9fmj?#!utxjfs;";
-        
+        public const string CacheData2_99 = "server =120.77.238.99; Initial Catalog=CacheData2; Persist Security Info=True; User ID = webmaster2017; Password =9fmj?#!utxjfs;";
+        public const string connectionString107 = "server =47.107.101.107; Initial Catalog=CacheData2; Persist Security Info=True; User ID = webmaster_h2020; Password =Hnc?rqvZ9#FrNzc6xk2y;";
+        public const string connectionString235 = "server =120.79.223.235; Initial Catalog=CacheData2; Persist Security Info=True; User ID = webmaster_x2020; Password =Wkc?rqmT5Fr!Nac3x7cu;";
     }
 }

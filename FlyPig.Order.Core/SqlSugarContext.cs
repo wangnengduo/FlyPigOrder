@@ -151,5 +151,26 @@ namespace FlyPig.Order.Core
                 return SqlSugarFactory.GetSugarClient("HotelProduct", SqlSugarConnection.HotelProduct);
             }
         }
+        public static SqlSugarClient CacheData2_99
+        {
+            get
+            {
+                return SqlSugarFactory.GetSugarClient("CacheData2_99", SqlSugarConnection.CacheData2_99);
+            }
+        }
+        public static SqlSugarClient connectionString107
+        {
+            get
+            {
+                return SqlSugarFactory.GetSugarClient("connectionString107", SqlSugarConnection.connectionString107);
+            }
+        }
+        public static SqlSugarClient connectionString235
+        {
+            get
+            {
+                return SqlSugarFactory.GetSugarClient("connectionString235", SqlSugarConnection.connectionString235);
+            }
+        }
     }
 }

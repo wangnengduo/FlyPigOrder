@@ -2,6 +2,7 @@
 using Flypig.Order.Application.Order.Entities;
 using Flypig.Order.Application.Order.Entities.Dto;
 using FlyPig.Order.Application.Entities.Enum;
+using System;
 
 namespace FlyPig.Order.Application.Order.Notice
 {
@@ -27,9 +28,32 @@ namespace FlyPig.Order.Application.Order.Notice
                 var tempOrder = orderRepository.GetSimpleOrderById(cq.TaoBaoOrderId);
                 if (tempOrder != null && tempOrder.Aid > 0)
                 {
-                    if (!string.IsNullOrEmpty(tempOrder.Remark) && tempOrder.Remark.Contains("该订单客人已入住"))
+                    //else if (tempOrder.LogisticsStatus == "STATUS_CONSIGNED" && tempOrder.OrderTime.Hour >= 18 && tempOrder.CheckIn == DateTime.Now.Date
+                    //    && DateTime.Now.Subtract(tempOrder.OrderTime).TotalMinutes >= 30)
+                    //{
+                    //    result.Message = "当前已入住，无法取消";
+                    //    result.ResultCode = "-206";
+                    //}
+                    int Hour = DateTime.Now.Hour;
+
+                    if (!string.IsNullOrEmpty(tempOrder.Remark) && tempOrder.Remark.Contains("该订单已入住"))
                     {
                         result.Message = "当前已入住，无法取消";
+                        result.ResultCode = "-206";
+                    }
+                    else if(!string.IsNullOrEmpty(tempOrder.caozuo) && tempOrder.caozuo.Contains("标识客人已入住"))
+                    {
+                        result.Message = "当前客人已入住，无法取消";
+                        result.ResultCode = "-206";
+                    }
+                    else if (!string.IsNullOrEmpty(tempOrder.Remark) && tempOrder.CheckIn < DateTime.Now.Date && tempOrder.Remark.Contains("该订单已确认"))
+                    {
+                        result.Message = "当前已入住，超过可退订时间，无法取消";
+                        result.ResultCode = "-206";
+                    }
+                    else if (!string.IsNullOrEmpty(tempOrder.Remark) && Hour >= 23 && tempOrder.CheckIn == DateTime.Now.Date && tempOrder.Remark.Contains("该订单已确认"))
+                    {
+                        result.Message = "当前已超过可退订时间，无法取消";
                         result.ResultCode = "-206";
                     }
                     else if (!string.IsNullOrEmpty(tempOrder.Remark) && tempOrder.Remark.Contains("该订单已确认") && tempOrder.Remark.Contains("订单当前状态不允许进行该操作"))

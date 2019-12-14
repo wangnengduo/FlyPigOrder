@@ -143,6 +143,8 @@ namespace Flypig.Order.Application.Order.Entities
         public string Day { get; set; }
         [XmlElement]
         public long Price { get; set; }
+        [XmlElement]
+        public int BreakFast { get; set; }
     }
     /// <summary>
     /// 入住人信息

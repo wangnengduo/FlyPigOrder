@@ -68,5 +68,11 @@ namespace FlyPig.Order.Application.Entities.Enum
         [Description("13")]
         MTNew = 9,
 
+        /// <summary>
+        /// 大都市
+        /// </summary>
+        [Description("14")]
+        DDS = 10,
+
     }
 }

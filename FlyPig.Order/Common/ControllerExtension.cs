@@ -17,5 +17,15 @@ namespace System.Web.Mvc
         public static XmlResult Xml(this Controller request, object obj, string contentType, Encoding contentEncoding, XmlRequestBehavior behavior) { return Xml(obj, contentType, contentEncoding, behavior); }
 
         internal static XmlResult Xml(object data, string contentType, Encoding contentEncoding, XmlRequestBehavior behavior) { return new XmlResult() { ContentEncoding = contentEncoding, ContentType = contentType, Data = data, XmlRequestBehavior = behavior }; }
+
+        public static JsonResult Jsonp(this Controller controller, object data)
+        {
+            FlyPig.Order.Common.Result.JsonpResult result = new FlyPig.Order.Common.Result.JsonpResult()
+            {
+                Data = data,
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet
+            };
+            return result;
+        }
     }
 }

@@ -60,6 +60,14 @@ namespace FlyPig.Order.Application.Repository.Order
         bool UpdateOrderRemark(long aid, string remark);
 
         /// <summary>
+        /// 更新订单备注及渠道订单号
+        /// </summary>
+        /// <param name="aid"></param>
+        /// <param name="remark"></param>
+        /// <returns></returns>
+        bool UpdateOrderRemarkAndSourceOrderID(long aid, int status, string remark, string sourceOrderID);
+
+        /// <summary>
         /// 更新发货备注
         /// </summary>
         /// <param name="aid"></param>

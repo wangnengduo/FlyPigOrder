@@ -35,5 +35,7 @@ namespace FlyPig.Order.Application.Entities.Dto
         /// </summary>
 
         public decimal DatePrice { get; set; }
+
+        public int BreakFast { get; set; }
     }
 }

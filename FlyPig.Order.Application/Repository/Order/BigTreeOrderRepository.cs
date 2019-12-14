@@ -127,6 +127,12 @@ namespace FlyPig.Order.Application.Repository.Order
             return SqlSugarContext.BigTreeInstance.Ado.ExecuteCommand(sql) > 0;
         }
 
+        public bool UpdateOrderRemarkAndSourceOrderID(long aid , int status,string remark,string sourceOrderID)
+        {
+            string sql = string.Format("UPDATE dbo.TB_hotelorder SET remark=remark+'<br/>{1}',sourceOrderID='{2}',state={3}   WHERE aid={0}", aid, remark, sourceOrderID,status);
+            return SqlSugarContext.BigTreeInstance.Ado.ExecuteCommand(sql) > 0;
+        }
+
 
         /// <summary>
         /// 获取短信内容

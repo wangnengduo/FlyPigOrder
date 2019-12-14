@@ -33,7 +33,10 @@ namespace FlyPig.Order.Application.Order.Notice
                     orderState = 24;    //订单状态已付款
                 }
 
+                
+
                 var tempOrder = orderRepository.GetSimpleOrderById(Request.TaoBaoOrderId);
+                
                 if (tempOrder != null && tempOrder.Aid > 0)
                 {
                     if (tempOrder.AlipayPay == 0)
@@ -51,13 +54,30 @@ namespace FlyPig.Order.Application.Order.Notice
                         var flag = orderRepository.UpdateNoticeOrder(payDto);
                         if (flag)
                         {
-                            //异步下单到第三方
-                            Task.Factory.StartNew(() =>
+                            //if (Channel == ProductChannel.Ctrip)
+                            //{
+                            //    orderState = 24;    //订单状态已付款
+                            //    result.Message = "";
+                            //    result.ResultCode = "0";
+                            //    orderRepository.UpdateOrderStutas(tempOrder.Aid, 24);
+                            //    return result;
+                            //}
+                            //黑名单不给自动提交
+                            if (tempOrder.ContactTel == "18655320526" || tempOrder.ContactTel == "15354977335")
                             {
+                                string message = string.Format("<br/>【系统】:该手机号码为黑名单，请核实 [{0}]",  DateTime.Now.ToString());
+                                orderRepository.UpdateRemarkState(tempOrder.Aid, 24, message);
+                            }
+                            else
+                            {
+                                //异步下单到第三方
+                                Task.Factory.StartNew(() =>
+                                {
                                     orderRepository.UpdateOrderDelayTime(payDto.TaoBaoOrderId, GetDelayTime(tempOrder.CheckIn));
                                     var orderChannel = ProductChannelFactory.GetOrderChannelByOrderType(tempOrder.OrderType, Shop);
                                     orderChannel.CreateOrder(Convert.ToInt32(tempOrder.Aid));
-                            });
+                                });
+                            }
 
                             result.Message = "";
                             result.ResultCode = "0";
