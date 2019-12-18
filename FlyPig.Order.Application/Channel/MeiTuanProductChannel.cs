@@ -196,7 +196,7 @@ namespace FlyPig.Order.Application.Hotel.Channel
                             av.Remark = Remark;
                             SqlSugarContext.RenNiXingInstance.Insertable(av).ExecuteCommand();
                             string url = string.Format("http://localhost:8097/apiAshx/UpdateRoomRate.ashx?type=RoomRate&hid={0}&source=5", checkDto.HotelId);
-                            if (!isUpdate)
+                            if (checkDto.IsCustomer != 0 && !isUpdate)
                             {
                                 Thread.Sleep(15000);
                             }
@@ -247,9 +247,9 @@ namespace FlyPig.Order.Application.Hotel.Channel
                         {
                             tongguo = true;
                         }
-                        else if ((NowHour == 18 && NowMinute > 30) || (NowHour >= 19 && NowHour < 8))
+                        else if ((NowHour == 18 && NowMinute > 10) || (NowHour < 8 && NowHour >= 19))
                         {
-                            if (falseCount % 2 == 0 || falseCount % 5 == 0)
+                            if (falseCount % 2 == 0 || falseCount % 5 == 0 || falseCount % 7 == 0)
                             {
                                 tongguo = true;
                             }
@@ -410,7 +410,7 @@ namespace FlyPig.Order.Application.Hotel.Channel
                             }
                             if (checkDto.IsCustomer != 0)
                             {
-                                Thread.Sleep(15000);
+                                Thread.Sleep(13000);
                             }
                             string url = string.Format("http://localhost:8097/apiAshx/UpdateRoomRate.ashx?type=RoomRate&hid={0}&source=5", checkDto.HotelId);
                             WebHttpRequest.Get(url);
