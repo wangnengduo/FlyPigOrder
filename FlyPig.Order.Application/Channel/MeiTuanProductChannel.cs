@@ -152,6 +152,8 @@ namespace FlyPig.Order.Application.Hotel.Channel
                             modelList.Add(item);
                         }
                     }
+                    //是否需要马上更新
+                    bool isUpdate = false;
                     //是否供应商发生变价
                     bool bianhua = false;
 
@@ -160,7 +162,7 @@ namespace FlyPig.Order.Application.Hotel.Channel
                         RateQuotasPrice rqp = new RateQuotasPrice();
                         rqp.Date = item.date;
                         //checkDto.IsVirtual, invoiceInfo.IsCommission, invoiceInfo.InvoiceMode, Convert.ToDecimal(item.subRatio / 10000), item.salePrice / 100, hotelExtension, rate
-                        rqp.Price = GetSalePrice(Convert.ToDateTime(item.date), checkDto.IsVirtual,  Convert.ToDecimal(item.subRatio / 10000), item.salePrice / 100, rate, ref bianhua, checkDto.IsCustomer).ToTaoBaoPrice();
+                        rqp.Price = GetSalePrice(Convert.ToDateTime(item.date), checkDto.IsVirtual,  Convert.ToDecimal(item.subRatio / 10000), item.salePrice / 100, rate, ref bianhua, ref isUpdate, checkDto.IsCustomer).ToTaoBaoPrice();
                         rqp.Quota = Quota;//5;
                         bookOutDto.DayPrice.Add(rqp);
                     }
@@ -194,7 +196,7 @@ namespace FlyPig.Order.Application.Hotel.Channel
                             av.Remark = Remark;
                             SqlSugarContext.RenNiXingInstance.Insertable(av).ExecuteCommand();
                             string url = string.Format("http://localhost:8097/apiAshx/UpdateRoomRate.ashx?type=RoomRate&hid={0}&source=5", checkDto.HotelId);
-                            if (bianhua)
+                            if (!isUpdate)
                             {
                                 Thread.Sleep(15000);
                             }
@@ -241,7 +243,7 @@ namespace FlyPig.Order.Application.Hotel.Channel
                         //在0点15分到4点为试单失败为双数直接拿缓存值输出，其余的都通过
                         int NowHour = DateTime.Now.Hour;//当前时间的时数
                         int NowMinute = DateTime.Now.Minute;//当前时间的分钟数
-                        if (falseCount % 2 == 0 || falseCount % 13 == 0)
+                        if (falseCount % 2 == 0)
                         {
                             tongguo = true;
                         }
@@ -406,7 +408,10 @@ namespace FlyPig.Order.Application.Hotel.Channel
                             catch
                             {
                             }
-                            Thread.Sleep(15000);
+                            if (checkDto.IsCustomer != 0)
+                            {
+                                Thread.Sleep(15000);
+                            }
                             string url = string.Format("http://localhost:8097/apiAshx/UpdateRoomRate.ashx?type=RoomRate&hid={0}&source=5", checkDto.HotelId);
                             WebHttpRequest.Get(url);
                         });
@@ -503,9 +508,10 @@ namespace FlyPig.Order.Application.Hotel.Channel
         /// <param name="IsCustomer">1为是客户请求，0为程序请求</param>
         ///  bool isVirtual, bool isCommission, int invoiceMode, decimal subRate, decimal guidePrice, AliTripHotelExtension hotelExtension, TaobaoRate rate
         /// <returns></returns>
-        private decimal GetSalePrice(DateTime date, bool isVirtual, decimal subRate, decimal guidePrice, TaobaoRate rate, ref bool bianhua,int IsCustomer = 1)
+        private decimal GetSalePrice(DateTime date, bool isVirtual, decimal subRate, decimal guidePrice, TaobaoRate rate, ref bool bianhua, ref bool isUpdate,int IsCustomer = 1)
         {
             bianhua = false;
+            isUpdate = true;
             decimal salePrice = guidePrice;
             decimal addPoint = 1;
             decimal basePrice = guidePrice * (1 - (decimal)subRate);
@@ -647,7 +653,7 @@ namespace FlyPig.Order.Application.Hotel.Channel
                 {
                     //当降价了，直接输出之前推送的价格
                     //if (Convert.ToDecimal(inventory_price.price) / 100 >= salePrice * 0.97m || (salePrice - Convert.ToDecimal(inventory_price.price) / 100) <= 40)
-                    if (Convert.ToDecimal(inventory_price.price) / 100 >= salePrice * 0.97m || (salePrice - Convert.ToDecimal(inventory_price.price) / 100) <= 8)
+                    if (Convert.ToDecimal(inventory_price.price) / 100 >= salePrice * 0.97m || (salePrice - Convert.ToDecimal(inventory_price.price) / 100) <= 10)
                     {
                         if (Convert.ToDecimal(inventory_price.price) / 100 != salePrice)
                         {
@@ -655,6 +661,7 @@ namespace FlyPig.Order.Application.Hotel.Channel
                         }
                         if (IsCustomer != 0)
                         {
+                            isUpdate = false;
                             return Convert.ToDecimal(inventory_price.price) / 100;
                         }
                     }

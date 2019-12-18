@@ -104,6 +104,10 @@ namespace LingZhong.HotelManager.Application.Channel.Ctrip.Order
                 {
                     return result.SetError("禁止重复提交取消");
                 }
+                if (order.caozuo.Contains("禁止自动提交取消"))
+                {
+                    return result.SetError("已禁止提交取消，本次未进行任何操作");
+                }
 
                 var cancelResult = chenYiCtripOrderChannel.CancelOrder(order.taoBaoOrderId);
 

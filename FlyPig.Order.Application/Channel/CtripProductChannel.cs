@@ -116,13 +116,16 @@ namespace FlyPig.Order.Application.Hotel.Channel
                         //var ctripHotel = hotelRepository.GetCtripHotel(checkDto.HotelId);
                         //金牌
                         //ctripStarRate = ctripHotel.CtripStarRate;
+                        //是否发生变价
                         bool bianhua = false;
+                        //是否需要马上更新
+                        bool isUpdate = false;
 
                         bookingCheckOut.DayPrice = roomRates.Rates.Select(u =>
                         new RateQuotasPrice
                         {
                             Date = u.EffectiveDate,
-                            Price = (GetSalePrice(Convert.ToDateTime(u.EffectiveDate), u.Cost, u.AmountBeforeTax, isCommission, rate, isPromotion,ref bianhua, ctripStarRate, checkDto.IsCustomer)
+                            Price = (GetSalePrice(Convert.ToDateTime(u.EffectiveDate), u.Cost, u.AmountBeforeTax, isCommission, rate, isPromotion,ref bianhua, ref isUpdate, ctripStarRate, checkDto.IsCustomer)
 
                             ).ToTaoBaoPrice(),
                             Quota = RoomNum//默认库存
@@ -189,7 +192,7 @@ namespace FlyPig.Order.Application.Hotel.Channel
                                     catch
                                     {
                                     }
-                                    if (bianhua)
+                                    if (!isUpdate)
                                     {
                                         Thread.Sleep(15000);
                                     }
@@ -411,7 +414,11 @@ namespace FlyPig.Order.Application.Hotel.Channel
                                 catch
                                 {
                                 }
-                                Thread.Sleep(15000);
+                                if (checkDto.IsCustomer != 0)
+                                {
+                                    Thread.Sleep(15000);
+                                }
+                                
                                 string url = string.Format("http://localhost:8097/apiAshx/UpdateRoomRate.ashx?type=RoomRate&hid={0}&source=8", checkDto.HotelId);
                                 WebHttpRequest.Get(url);
                             });
@@ -625,11 +632,13 @@ namespace FlyPig.Order.Application.Hotel.Channel
         /// <param name="hotelExtension"></param>
         /// <param name="isPromotion">是否为促销产品</param>
         /// <param name="bianhua">输出价格是否发生变化</param>
+        /// <param name="isUpdate">是否需要马上更新</param>
         /// <param name="IsCustomer">1为是客户请求，0为程序请求</param>
         /// <returns></returns>
-        private decimal GetSalePrice(DateTime date, decimal basePrice,decimal guidePrice, bool isCommission, TaobaoRate rate,bool isPromotion, ref bool bianhua, decimal ? hotelExtension=0,int IsCustomer=1)
+        private decimal GetSalePrice(DateTime date, decimal basePrice,decimal guidePrice, bool isCommission, TaobaoRate rate,bool isPromotion, ref bool bianhua, ref bool isUpdate, decimal ? hotelExtension=0,int IsCustomer=1)
         {
             bianhua = false;
+            isUpdate = true;
             bool isGuidePrice = false;
             bool isAddPrice = false;
             bool isAddRedEnvelope = true;
@@ -764,6 +773,7 @@ namespace FlyPig.Order.Application.Hotel.Channel
                             }
                             if (IsCustomer != 0)
                             {
+                                isUpdate = false;
                                 return Convert.ToDecimal(inventory_price.price) / 100;
                             }
                         }
@@ -776,6 +786,7 @@ namespace FlyPig.Order.Application.Hotel.Channel
                         }
                         if (IsCustomer != 0)
                         {
+                            isUpdate = false;
                             return Convert.ToDecimal(inventory_price.price) / 100;
                         }
                     }

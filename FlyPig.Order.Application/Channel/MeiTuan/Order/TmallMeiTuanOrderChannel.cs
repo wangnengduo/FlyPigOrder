@@ -76,6 +76,10 @@ namespace FlyPig.Order.Application.MT.Order
                 {
                     return result.SetError("订单不存在");
                 }
+                if (order.caozuo.Contains("禁止自动提交取消"))
+                {
+                    return result.SetError("已禁止提交取消，本次未进行任何操作");
+                }
                 string message = string.Empty;
 
                 string url = string.Empty;
