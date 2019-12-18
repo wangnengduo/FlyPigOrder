@@ -374,6 +374,7 @@ namespace FlyPig.Order.Application.Hotel.Channel
                         catch
                         {
                         }
+                        Thread.Sleep(5000);
                         string url = string.Format("http://localhost:8097/apiAshx/UpdateRoomRate.ashx?type=RoomRate&hid={0}&source=10", checkDto.HotelId);
                         WebHttpRequest.Get(url);
                     });
@@ -566,7 +567,8 @@ namespace FlyPig.Order.Application.Hotel.Channel
                 if (inventory_price.price > 0 && inventory_price.price <= 4999900)
                 {
                     //当降价了，直接输出之前推送的价格，当为代理产品时在升价
-                    if (Convert.ToDecimal(inventory_price.price) / 100 >= salePrice * 0.97m || (salePrice - Convert.ToDecimal(inventory_price.price) / 100) <= 15)
+                    //if (Convert.ToDecimal(inventory_price.price) / 100 >= salePrice * 0.97m || (salePrice - Convert.ToDecimal(inventory_price.price) / 100) <= 15)
+                    if (Convert.ToDecimal(inventory_price.price) / 100 >= salePrice * 0.97m)
                     {
                         if (Convert.ToDecimal(inventory_price.price) / 100 != salePrice)
                         {

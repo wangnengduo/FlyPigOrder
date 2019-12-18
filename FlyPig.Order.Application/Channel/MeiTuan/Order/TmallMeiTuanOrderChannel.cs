@@ -273,13 +273,11 @@ namespace FlyPig.Order.Application.MT.Order
                             int NowHour = DateTime.Now.Hour;//当前时间的时数
                             int NowMinute = DateTime.Now.Minute;//当前时间的分钟数
                             //晚上12点半后，8点前满房时自动发送短信
-                            //if ((NowHour == 0 && NowMinute > 30) || (NowHour > 0 && NowHour < 8))
-                            //{
-                            //    //发满房短信（发送满房信息）
-                            //    FlyPigMessageUility.ThirdCommunication(Shop, Convert.ToInt32(order.aId), "系统", 1);
-                            //}
-                            //发满房短信（发送满房信息）
-                            FlyPigMessageUility.ThirdCommunication(Shop, Convert.ToInt32(order.aId), "系统", 1);
+                            if ((NowHour == 0 && NowMinute > 30) || (NowHour > 0 && NowHour < 8))
+                            {
+                                //发满房短信（发送满房信息）
+                                FlyPigMessageUility.ThirdCommunication(Shop, Convert.ToInt32(order.aId), "系统", 1);
+                            }
                         }
                         catch
                         {

@@ -88,6 +88,8 @@ namespace FlyPig.Order.Application.Hotel.Channel
                 bookOutDto.IsBook = true;
                 bookOutDto.Message = "正常可预定";
 
+                var response = new BookingCheckResponse();
+
                 int totalPrice = Convert.ToInt32(getTotaPrice(checkDto));
                 var request = new BookingCheckRequest
                 {
@@ -98,10 +100,13 @@ namespace FlyPig.Order.Application.Hotel.Channel
                     RoomNum = checkDto.RoomNum,
                     totalPrice = totalPrice * checkDto.RoomNum
                 };
-                var response = meiTuanApiClient.Excute(request);
+                if (totalPrice != 0)
+                {
+                    response = meiTuanApiClient.Excute(request);
+                }
                 TimeSpan ts = checkDto.CheckOut.Subtract(checkDto.CheckIn);
 
-                if (response.Result.code == 0 && (response.Result.desc == null || !response.Result.desc.Contains("价格发生变化")))
+                if (response != null && response.Result.code == 0 && (response.Result.desc == null || !response.Result.desc.Contains("价格发生变化")))
                 {
                     //var hotelExtension = hotelRepository.GetHotelExtension(checkDto.HotelId, (int)Channel);
                     //var invoiceInfo = GetRatePlanInvoice(checkDto.HotelId, checkDto.RatePlanId, checkDto.CheckIn, checkDto.CheckOut);
@@ -189,6 +194,10 @@ namespace FlyPig.Order.Application.Hotel.Channel
                             av.Remark = Remark;
                             SqlSugarContext.RenNiXingInstance.Insertable(av).ExecuteCommand();
                             string url = string.Format("http://localhost:8097/apiAshx/UpdateRoomRate.ashx?type=RoomRate&hid={0}&source=5", checkDto.HotelId);
+                            if (bianhua)
+                            {
+                                Thread.Sleep(15000);
+                            }
                             WebHttpRequest.Get(url);
                             //当价格改变时或库存为0时更新房态
                             //if (bianhua || remainRoomNum == 0)
@@ -227,29 +236,29 @@ namespace FlyPig.Order.Application.Hotel.Channel
                         }
                         //如果试单失败为双数直接拿缓存值输出，单数时为失败
                         //if (falseCount % 2 == 0)
-                        bool tongguo = true;
+                        bool tongguo = false;
 
                         //在0点15分到4点为试单失败为双数直接拿缓存值输出，其余的都通过
                         int NowHour = DateTime.Now.Hour;//当前时间的时数
                         int NowMinute = DateTime.Now.Minute;//当前时间的分钟数
-                        //if ((NowHour == 0 && NowMinute > 15) || (NowHour > 0 && NowHour < 4))
-                        //{
-                        //    if (falseCount % 2 == 0)
-                        //    {
-                        //        tongguo = true;
-                        //    }
-                        //    else
-                        //    {
-                        //        tongguo = false;
-                        //    }
-                        //}
+                        if (falseCount % 2 == 0 || falseCount % 13 == 0)
+                        {
+                            tongguo = true;
+                        }
+                        else if ((NowHour == 18 && NowMinute > 30) || (NowHour >= 19 && NowHour < 8))
+                        {
+                            if (falseCount % 2 == 0 || falseCount % 5 == 0)
+                            {
+                                tongguo = true;
+                            }
+                        }
                         //if (falseCount % 6 == 0 || checkDto.IsCustomer == 0 || response.Result.desc.Contains("价格发生变化"))
-                        if(checkDto.IsCustomer == 0)
+                        if (checkDto.IsCustomer == 0)
                         {
                             bookOutDto.Message = response.Result.desc;
                             bookOutDto.IsBook = false;
                         }
-                        else if(falseCount % 2 == 0 || response.Result.desc.Contains("价格发生变化"))
+                        else if(tongguo || response.Result.desc.Contains("价格发生变化"))
                         {
                             var rate = new TaobaoRate();
                             XhotelRateGetRequest req = new XhotelRateGetRequest();
@@ -397,6 +406,7 @@ namespace FlyPig.Order.Application.Hotel.Channel
                             catch
                             {
                             }
+                            Thread.Sleep(15000);
                             string url = string.Format("http://localhost:8097/apiAshx/UpdateRoomRate.ashx?type=RoomRate&hid={0}&source=5", checkDto.HotelId);
                             WebHttpRequest.Get(url);
                         });
@@ -433,6 +443,7 @@ namespace FlyPig.Order.Application.Hotel.Channel
                             catch
                             {
                             }
+                            Thread.Sleep(6000);
                             string url = string.Format("http://localhost:8097/apiAshx/UpdateRoomRate.ashx?type=RoomRate&hid={0}&source=5", checkDto.HotelId);
                             WebHttpRequest.Get(url);
                         });
@@ -635,7 +646,8 @@ namespace FlyPig.Order.Application.Hotel.Channel
                 if (inventory_price.price > 0 && inventory_price.price <= 4999900)
                 {
                     //当降价了，直接输出之前推送的价格
-                    if (Convert.ToDecimal(inventory_price.price) / 100 >= salePrice * 0.97m || (salePrice - Convert.ToDecimal(inventory_price.price) / 100) <= 40)
+                    //if (Convert.ToDecimal(inventory_price.price) / 100 >= salePrice * 0.97m || (salePrice - Convert.ToDecimal(inventory_price.price) / 100) <= 40)
+                    if (Convert.ToDecimal(inventory_price.price) / 100 >= salePrice * 0.97m || (salePrice - Convert.ToDecimal(inventory_price.price) / 100) <= 8)
                     {
                         if (Convert.ToDecimal(inventory_price.price) / 100 != salePrice)
                         {
