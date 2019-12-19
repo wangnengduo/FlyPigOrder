@@ -243,7 +243,7 @@ namespace FlyPig.Order.Application.Hotel.Channel
                         //在0点15分到4点为试单失败为双数直接拿缓存值输出，其余的都通过
                         int NowHour = DateTime.Now.Hour;//当前时间的时数
                         int NowMinute = DateTime.Now.Minute;//当前时间的分钟数
-                        if (falseCount % 2 == 0)
+                        if (falseCount % 2 == 0 || falseCount % 13 == 0)
                         {
                             tongguo = true;
                         }

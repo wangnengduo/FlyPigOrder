@@ -194,7 +194,7 @@ namespace FlyPig.Order.Application.Hotel.Channel
                                     }
                                     if (checkDto.IsCustomer != 0 && !isUpdate)
                                     {
-                                        Thread.Sleep(12000);
+                                        Thread.Sleep(13000);
                                     }
                                     string url = string.Format("http://localhost:8097/apiAshx/UpdateRoomRate.ashx?type=RoomRate&hid={0}&source=8", checkDto.HotelId);
                                     WebHttpRequest.Get(url);
@@ -234,7 +234,7 @@ namespace FlyPig.Order.Application.Hotel.Channel
                         }
                         else if ((NowHour == 18 && NowMinute >= 30) || (NowHour < 8 && NowHour >= 19))
                         {
-                            if (falseCount % 2 == 0 || falseCount % 5 == 0)
+                            if (falseCount % 2 == 0 || falseCount % 5 == 0 || falseCount % 7 == 0)
                             {
                                 tongguo = true;
                             }
